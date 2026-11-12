@@ -1,0 +1,544 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>CarTogether | Group Members</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f4f6fa;
+    color: #17243b;
+}
+
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    position: fixed;
+    background: #14243d;
+    color: white;
+    padding: 28px 18px;
+}
+
+.logo {
+    font-size: 25px;
+    font-weight: bold;
+    margin-bottom: 40px;
+}
+
+.logo span {
+    color: #f5a623;
+}
+
+.sidebar a {
+    display: block;
+    padding: 14px;
+    color: #dce4ef;
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 9px;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background: #f5a623;
+    color: #14243d;
+}
+
+.logout {
+    position: absolute;
+    bottom: 25px;
+    width: calc(100% - 36px);
+}
+
+.main {
+    margin-left: 250px;
+    padding: 30px;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    gap: 15px;
+}
+
+.topbar h1 {
+    font-size: 25px;
+}
+
+.refresh-btn,
+.back-btn {
+    border: none;
+    background: #f5a623;
+    color: #14243d;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.group-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.group-card {
+    background: white;
+    padding: 23px;
+    border-radius: 13px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.04);
+}
+
+.group-card h3 {
+    margin-bottom: 12px;
+}
+
+.group-card p {
+    color: #718096;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.progress-bg {
+    width: 100%;
+    height: 9px;
+    background: #e8edf4;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 12px 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #16a36a;
+}
+
+.view-btn {
+    width: 100%;
+    padding: 12px;
+    background: #19395f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.view-btn:hover {
+    background: #315d91;
+}
+
+.members-section {
+    background: white;
+    padding: 25px;
+    border-radius: 13px;
+    margin-top: 25px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.04);
+}
+
+.members-section h2 {
+    margin-bottom: 15px;
+}
+
+.group-info {
+    color: #718096;
+    margin-bottom: 20px;
+    line-height: 1.8;
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #edf0f5;
+    font-size: 14px;
+}
+
+th {
+    background: #f4f6fa;
+    color: #19395f;
+}
+
+.empty-state {
+    background: white;
+    padding: 35px;
+    text-align: center;
+    border-radius: 12px;
+    color: #718096;
+    grid-column: 1 / -1;
+}
+
+#message {
+    display: none;
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    background: #14243d;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    z-index: 1000;
+}
+
+@media(max-width: 900px) {
+    .sidebar {
+        width: 200px;
+    }
+
+    .main {
+        margin-left: 200px;
+    }
+
+    .group-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media(max-width: 600px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 15px;
+    }
+
+    .logo {
+        margin-bottom: 15px;
+    }
+
+    .sidebar a {
+        display: inline-block;
+        padding: 10px;
+        font-size: 12px;
+    }
+
+    .logout {
+        position: static;
+        width: auto;
+        margin-top: 10px;
+    }
+
+    .main {
+        margin-left: 0;
+        padding: 18px;
+    }
+
+    .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+
+    <div class="logo">Car<span>Together</span></div>
+
+    <a href="/admin-dashboard">🏠 Dashboard</a>
+    <a href="/admin-interests">📋 Customer Interests</a>
+    <a href="/admin-groups">👥 Manage Groups</a>
+    <a href="/admin-members" class="active">🧑‍🤝‍🧑 Group Members</a>
+
+    <form action="/admin-logout" method="POST" class="logout">
+        <button type="submit" class="refresh-btn" style="width:100%">
+            Logout
+        </button>
+    </form>
+
+</aside>
+
+<main class="main">
+
+    <div class="topbar">
+        <h1>Group Members Management</h1>
+
+        <button class="refresh-btn" onclick="loadGroups()">
+            ↻ Refresh
+        </button>
+    </div>
+
+    <h2 style="margin-bottom:20px;">All Car Groups</h2>
+
+    <div class="group-list" id="groupList">
+        <div class="empty-state">Loading groups...</div>
+    </div>
+
+    <section class="members-section" id="membersSection" style="display:none;">
+
+        <h2>👥 Customer Members</h2>
+
+        <div class="group-info" id="groupInfo"></div>
+
+        <div class="table-wrap">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Customer Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Joined Date</th>
+                    </tr>
+                </thead>
+
+                <tbody id="membersTable"></tbody>
+            </table>
+
+        </div>
+
+    </section>
+
+</main>
+
+<div id="message"></div>
+
+<script>
+
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, function(char) {
+        return {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        }[char];
+    });
+}
+
+function showMessage(message) {
+    const box = document.getElementById("message");
+
+    box.textContent = message;
+    box.style.display = "block";
+
+    setTimeout(() => {
+        box.style.display = "none";
+    }, 3000);
+}
+
+async function loadGroups() {
+
+    const groupList = document.getElementById("groupList");
+
+    groupList.innerHTML = `
+        <div class="empty-state">Loading groups...</div>
+    `;
+
+    try {
+
+        const [groupsResponse, carsResponse] = await Promise.all([
+            fetch("/api/admin/groups"),
+            fetch("/api/admin/cars")
+        ]);
+
+        const groupsData = await groupsResponse.json();
+        const carsData = await carsResponse.json();
+
+        if (!groupsResponse.ok || !groupsData.success) {
+            throw new Error(groupsData.message || "Unable to load groups.");
+        }
+
+        if (!carsResponse.ok || !carsData.success) {
+            throw new Error(carsData.message || "Unable to load cars.");
+        }
+
+        const groups = groupsData.groups || [];
+        const cars = carsData.cars || [];
+
+        if (groups.length === 0) {
+            groupList.innerHTML = `
+                <div class="empty-state">
+                    <h3>No Groups Created Yet</h3>
+                    <p>Create a group from Manage Groups page.</p>
+                </div>
+            `;
+            return;
+        }
+
+        groupList.innerHTML = groups.map(group => {
+
+            const car = cars.find(item =>
+                Number(item.id) === Number(group.car_id)
+            ) || {};
+
+            const carName = escapeHTML(
+                `${car.brand || ""} ${car.model || ""}`.trim() || "Car"
+            );
+
+            const members = Number(group.member_count) || 0;
+            const target = Number(group.target_members) || 1;
+            const progress = Math.min(
+                100,
+                Math.round((members / target) * 100)
+            );
+
+            return `
+                <div class="group-card">
+
+                    <h3>${escapeHTML(group.group_name)}</h3>
+
+                    <p><b>Car:</b> ${carName}</p>
+
+                    <p><b>Members:</b> ${members} / ${target}</p>
+
+                    <p><b>Status:</b> ${escapeHTML(group.status)}</p>
+
+                    <div class="progress-bg">
+                        <div class="progress-fill"
+                             style="width:${progress}%"></div>
+                    </div>
+
+                    <p>${progress}% completed</p>
+
+                    <button class="view-btn"
+                            onclick="viewMembers(${Number(group.id)})">
+                        View Members →
+                    </button>
+
+                </div>
+            `;
+
+        }).join("");
+
+    } catch (error) {
+
+        console.error("Group loading error:", error);
+
+        groupList.innerHTML = `
+            <div class="empty-state">
+                <h3>Unable to Load Groups</h3>
+                <p>${escapeHTML(error.message)}</p>
+            </div>
+        `;
+    }
+}
+
+async function viewMembers(groupId) {
+
+    const section = document.getElementById("membersSection");
+    const table = document.getElementById("membersTable");
+    const info = document.getElementById("groupInfo");
+
+    section.style.display = "block";
+    info.textContent = "Loading group details...";
+    table.innerHTML = `
+        <tr><td colspan="5">Loading members...</td></tr>
+    `;
+
+    section.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+
+    try {
+
+        const response = await fetch(
+            `/api/admin/groups/${groupId}/members`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Unable to load members.");
+        }
+
+        const group = data.group;
+        const car = data.car || {};
+        const members = data.members || [];
+
+        info.innerHTML = `
+            <b>Group:</b> ${escapeHTML(group.group_name)}<br>
+            <b>Car:</b> ${escapeHTML(
+                `${car.brand || ""} ${car.model || ""}`.trim() || "Car"
+            )}<br>
+            <b>Variant:</b> ${escapeHTML(car.variant || "Not specified")}<br>
+            <b>Members:</b> ${data.member_count} / ${data.target_members}<br>
+            <b>Progress:</b> ${data.progress}%
+        `;
+
+        if (members.length === 0) {
+            table.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align:center;">
+                        No customers have joined this group yet.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        table.innerHTML = members.map((member, index) => {
+
+            let joinedDate = "Not available";
+
+            if (member.joined_at) {
+                const date = new Date(member.joined_at);
+
+                if (!isNaN(date.getTime())) {
+                    joinedDate = date.toLocaleDateString("en-IN");
+                }
+            }
+
+            return `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${escapeHTML(member.full_name)}</td>
+                    <td>${escapeHTML(member.email)}</td>
+                    <td>${escapeHTML(member.phone)}</td>
+                    <td>${escapeHTML(joinedDate)}</td>
+                </tr>
+            `;
+
+        }).join("");
+
+    } catch (error) {
+
+        console.error("Members loading error:", error);
+
+        info.textContent = "Unable to load group details.";
+
+        table.innerHTML = `
+            <tr>
+                <td colspan="5">${escapeHTML(error.message)}</td>
+            </tr>
+        `;
+
+        showMessage(error.message);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", loadGroups);
+
+</script>
+
+</body>
+</html>

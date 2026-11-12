@@ -1,0 +1,456 @@
+{% extends "customer/base.html" %}
+{% block title %}EMI Calculator{% endblock %}
+{% block eyebrow %}Plan your loan{% endblock %}
+{% block heading %}EMI Calculator{% endblock %}
+
+{% block head_extra %}
+<style>
+/* Calculator, result card, chips and sliders come from base.html. This block only has what is specific to this page. */
+
+.field-head .fl { font-size: 14px; font-weight: 600; }
+
+/* floating EMI pill: shows on phones/tablets once the result card scrolls out of view */
+.emi-pill { display: none; position: fixed; z-index: 55; left: 50%; top: calc(10px + env(safe-area-inset-top)); transform: translate(-50%, -140%); align-items: center; gap: 10px; min-height: 44px; padding: 6px 8px 6px 18px; background: var(--panel); color: var(--on-panel); border: 1px solid var(--line-2); border-radius: var(--r-pill); box-shadow: var(--shadow-2); white-space: nowrap; cursor: pointer; font: inherit; opacity: 0; visibility: hidden; transition: transform .35s var(--ease), opacity .25s, visibility .35s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.emi-pill span { font-size: 13px; font-weight: 500; color: #b5b7c2; }
+.emi-pill b { font-size: 18px; font-weight: 700; letter-spacing: -.03em; color: var(--lime); background: rgba(255,255,255,.1); padding: 4px 14px; border-radius: var(--r-pill); font-variant-numeric: tabular-nums; }
+.emi-pill.show { transform: translate(-50%, 0); opacity: 1; visibility: visible; }
+.emi-pill:active { transform: translate(-50%, 0) scale(.96); }
+@media (max-width: 900px) { .emi-pill { display: flex; } }
+
+/* easier thumb scrolling for chips on phones */
+@media (max-width: 600px) {
+    .chips-row { flex-wrap: nowrap; overflow-x: auto; margin: 12px -18px 0; padding: 2px 18px 4px; scrollbar-width: none; overscroll-behavior-x: contain; }
+    .chips-row::-webkit-scrollbar { display: none; }
+    .chips-row .chip { flex: 0 0 auto; padding: 11px 18px; font-size: 14px; }
+}
+
+/* ---------- loan CTA + live status (dark panel in both themes) ---------- */
+.loan-cta { margin-top: 20px; padding: 20px; border-radius: var(--r-card); background: var(--panel); color: var(--on-panel); border: 1px solid rgba(255,255,255,.1); display: grid; gap: 14px; transition: background-color var(--d-med), border-color var(--d-med), box-shadow var(--d-med), color var(--d-med); }
+.lc-head { display: grid; gap: 4px; }
+#lcTitle { display: block; font-size: 22px; font-weight: 700; letter-spacing: -.035em; line-height: 1.15; overflow-wrap: anywhere; transition: color var(--d-med); }
+#lcText { display: block; font-size: 14px; color: #c3c5cf; line-height: 1.5; }
+#loanOpen { width: 100%; background: var(--lime); color: #101114; padding: 16px; font-size: 16px; }
+.loan-trust { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: #a8abb7; font-weight: 600; }
+
+.lc-track { display: none; }
+.lc-note { display: none; background: rgba(255,255,255,.1); border-radius: 18px; padding: 12px 14px; font-size: 14px; line-height: 1.45; color: #e4e5ec; overflow-wrap: anywhere; }
+.lc-note b { color: #fff; }
+.lc-meta { display: none; align-items: center; justify-content: space-between; gap: 10px; font-size: 12.5px; color: #b5b7c2; font-weight: 500; }
+.lc-meta button { min-height: 44px; background: rgba(255,255,255,.12); border: none; color: #fff; font-weight: 600; font-size: 12.5px; padding: 8px 16px; border-radius: var(--r-pill); cursor: pointer; touch-action: manipulation; }
+
+.loan-cta.sent .lc-track { display: block; animation: lcin var(--d-slow) var(--ease) both; }
+.loan-cta.sent .lc-meta { display: flex; }
+.loan-cta.sent .loan-trust { display: none; }
+.loan-cta.sent.has-note .lc-note { display: block; animation: lcin var(--d-slow) var(--ease) both; }
+.loan-cta.sent #loanOpen { display: none; }
+.loan-cta.reopen #loanOpen { display: inline-flex; }
+.loan-cta.reopen .lc-track { display: none; }
+@keyframes lcin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* approved: lime outline + lime title */
+.loan-cta.ok { border-color: var(--lime); box-shadow: 0 0 0 3px rgba(215,255,63,.25); }
+.loan-cta.ok #lcTitle { color: var(--lime); }
+/* not approved / closed: follows the theme's danger colours */
+.loan-cta.bad { background: var(--danger-soft); color: var(--ink); border-color: var(--danger); }
+.loan-cta.bad #lcText { color: var(--ink-2); }
+.loan-cta.bad .lc-note { background: var(--card); color: var(--ink); }
+.loan-cta.bad .lc-note b { color: var(--ink); }
+.loan-cta.bad .lc-meta { color: var(--muted); }
+.loan-cta.bad .lc-meta button { background: var(--card-2); color: var(--ink); }
+.loan-cta.bad #loanOpen { background: var(--ink); color: var(--bg); }
+
+/* ---------- loan request form (inside base.html's bottom sheet) ---------- */
+.lm-sum { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 4px 0 18px; }
+.lm-sum div { min-width: 0; background: var(--bg-2); border: 1px solid var(--line); border-radius: 18px; padding: 12px 14px; }
+.lm-sum div:nth-child(2) { background: var(--lime); border-color: var(--lime); color: #101114; }
+.lm-sum small { display: block; font-size: var(--t-xs); font-weight: 600; color: var(--muted); }
+.lm-sum div:nth-child(2) small { color: #3d4a00; }
+.lm-sum b { display: block; font-size: 17px; font-weight: 700; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.lm-form { display: grid; gap: 14px; }
+.lm-form label.f { display: grid; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.lm-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.lm-consent { display: flex; gap: 12px; align-items: flex-start; font-size: 13px; color: var(--ink-2); line-height: 1.5; font-weight: 500; cursor: pointer; }
+.lm-consent input { width: 22px; height: 22px; margin-top: 1px; flex: none; accent-color: var(--acc-fill); }
+.lm-err { color: var(--danger); font-size: 14px; font-weight: 600; }
+.lm-err:empty { display: none; }
+.lm-form .btn { width: 100%; padding: 16px; font-size: 16px; }
+@media (max-width: 600px) { .lm-two { grid-template-columns: 1fr; } }
+@media (max-width: 380px) { .lm-sum b { font-size: 15px; } }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<button type="button" class="emi-pill" id="emiPill" aria-label="Monthly EMI. Tap to go back to the result"><span>Monthly EMI</span><b id="pillEmi">₹0</b></button>
+
+<div class="calc">
+
+    <!-- INPUTS -->
+    <section class="calc-card">
+        <h3>Plan your car loan</h3>
+        <p class="hint">Move the sliders or type your own numbers. The result updates instantly.</p>
+
+        <div class="field">
+            <div class="field-head">
+                <label for="emiPrice">Car price</label>
+                <div class="num-wrap"><span class="unit">₹</span><input id="emiPrice" type="number" inputmode="numeric" min="0" step="1000" value="800000"></div>
+            </div>
+            <input type="range" id="rPrice" min="300000" max="3000000" step="10000" value="800000" aria-label="Car price slider">
+            <div class="range-ends"><span>₹3 L</span><span>₹30 L</span></div>
+            <div class="chips-row" id="priceChips" role="group" aria-label="Quick car prices">
+                <button type="button" class="chip" data-v="500000" aria-pressed="false">₹5 L</button>
+                <button type="button" class="chip" data-v="800000" aria-pressed="false">₹8 L</button>
+                <button type="button" class="chip" data-v="1200000" aria-pressed="false">₹12 L</button>
+                <button type="button" class="chip" data-v="1800000" aria-pressed="false">₹18 L</button>
+                <button type="button" class="chip" data-v="2500000" aria-pressed="false">₹25 L</button>
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="field-head">
+                <label for="emiDown">Down payment</label>
+                <div class="num-wrap"><input id="emiDown" type="number" inputmode="decimal" min="0" max="90" step="1" value="20"><span class="unit">%</span></div>
+            </div>
+            <input type="range" id="rDown" min="0" max="90" step="1" value="20" aria-label="Down payment slider">
+            <div class="range-ends"><span>0%</span><span>90%</span></div>
+        </div>
+
+        <div class="field">
+            <div class="field-head">
+                <label for="emiRate">Interest rate (per year)</label>
+                <div class="num-wrap"><input id="emiRate" type="number" inputmode="decimal" min="0" max="30" step="0.1" value="9.5"><span class="unit">%</span></div>
+            </div>
+            <input type="range" id="rRate" min="5" max="20" step="0.1" value="9.5" aria-label="Interest rate slider">
+            <div class="range-ends"><span>5%</span><span>20%</span></div>
+        </div>
+
+        <div class="field">
+            <div class="field-head"><span class="fl" id="tenureLbl">Tenure</span></div>
+            <select id="emiMonths" aria-labelledby="tenureLbl">
+                <option value="12">12</option><option value="24">24</option><option value="36">36</option>
+                <option value="48">48</option><option value="60" selected>60</option><option value="72">72</option><option value="84">84</option>
+            </select>
+            <div class="chips-row" id="tenureChips" role="group" aria-labelledby="tenureLbl">
+                <button type="button" class="chip" data-v="12" aria-pressed="false">1 yr</button>
+                <button type="button" class="chip" data-v="24" aria-pressed="false">2 yrs</button>
+                <button type="button" class="chip" data-v="36" aria-pressed="false">3 yrs</button>
+                <button type="button" class="chip" data-v="48" aria-pressed="false">4 yrs</button>
+                <button type="button" class="chip on" data-v="60" aria-pressed="true">5 yrs</button>
+                <button type="button" class="chip" data-v="72" aria-pressed="false">6 yrs</button>
+                <button type="button" class="chip" data-v="84" aria-pressed="false">7 yrs</button>
+            </div>
+        </div>
+
+        <button type="button" class="reset-link" id="emiReset">↺ Reset to defaults</button>
+    </section>
+
+    <!-- RESULT -->
+    <section class="calc-card result-card">
+        <h3>Your estimate</h3>
+        <p class="hint" id="resultHint">Based on the values you chose.</p>
+
+        <div class="emi-result" id="emiResult" aria-live="polite"></div>
+
+        <div class="split">
+            <div class="split-bar" aria-hidden="true"><i class="d" id="barDown"></i><i class="p" id="barLoan"></i><i class="i" id="barInt"></i></div>
+            <div class="legend">
+                <span class="d">Down payment <b id="pcDown">0%</b></span>
+                <span class="p">Loan <b id="pcLoan">0%</b></span>
+                <span class="i">Interest <b id="pcInt">0%</b></span>
+            </div>
+        </div>
+
+        <div class="total-line"><span>Total you will pay</span><strong id="totalPay">₹0</strong></div>
+        <p class="disclaimer">This is only an estimate. Your bank decides the final loan terms.</p>
+
+        {# data-phone carries the customer's phone to the script below, so the script needs no Jinja inside it #}
+        <div class="loan-cta on-dark" id="loanCta" data-phone="{{ customer.phone or '' }}">
+            <div class="lc-head" role="status" aria-live="polite">
+                <b id="lcTitle">Want this loan?</b>
+                <span id="lcText">Our partner banks will call you with their best offers. Free and no obligation.</span>
+            </div>
+
+            <div class="lc-track" id="lcTrack"></div>
+            <div class="lc-note" id="lcNote"></div>
+            <div class="lc-meta" id="lcMeta"><span id="lcWhen">Live status</span><button type="button" id="lcRefresh">↻ Refresh</button></div>
+
+            <button type="button" class="btn" id="loanOpen">Get this loan offer →</button>
+            <div class="loan-trust"><span>✓ Free for you</span><span>✓ Compare bank offers</span><span>✓ No obligation</span></div>
+        </div>
+    </section>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* Loaded after base.html's script, so calcEMI, money, showMessage, escapeHTML, fetchJSON, friendlyError,
+   trackerHTML and the bottom sheet (openSheet / closeSheet) are ready to use.
+   No Jinja inside this script: the phone number is read from the loan card's data-phone attribute. */
+(function () {
+    const $ = id => document.getElementById(id);
+    const pairs = [["emiPrice", "rPrice"], ["emiDown", "rDown"], ["emiRate", "rRate"]];
+    const defaults = { emiPrice: 800000, emiDown: 20, emiRate: 9.5, emiMonths: 60 };
+    const PHONE = ($("loanCta").dataset.phone || "").trim();
+
+    /* ---------- calculator extras (base.html fills the result boxes; this does the rest) ---------- */
+    function fillTrack(r) {
+        const min = +r.min, max = +r.max;
+        const pct = Math.min(100, Math.max(0, ((+r.value - min) / (max - min)) * 100));
+        r.style.setProperty("--p", pct + "%");
+    }
+    function fire(el) { el.dispatchEvent(new Event("input", { bubbles: true })); }
+
+    function setPressed(chips, isOn) {
+        chips.forEach(c => { const on = isOn(c); c.classList.toggle("on", on); c.setAttribute("aria-pressed", String(on)); });
+    }
+    function syncChips() {
+        const price = +$("emiPrice").value;
+        setPressed(document.querySelectorAll("#priceChips .chip"), c => +c.dataset.v === price);
+        const m = $("emiMonths").value;
+        setPressed(document.querySelectorAll("#tenureChips .chip"), c => c.dataset.v === m);
+    }
+
+    function updateExtras() {
+        const price = parseFloat($("emiPrice").value) || 0;
+        const down = Math.min(90, Math.max(0, parseFloat($("emiDown").value) || 0));
+        const rate = Math.min(30, Math.max(0, parseFloat($("emiRate").value) || 0));
+        const months = parseInt($("emiMonths").value, 10) || 60;
+
+        if (!price) {
+            ["barDown", "barLoan", "barInt"].forEach(i => $(i).style.width = "0%");
+            ["pcDown", "pcLoan", "pcInt"].forEach(i => $(i).textContent = "0%");
+            $("totalPay").textContent = money(0);
+            $("pillEmi").textContent = money(0);
+            $("resultHint").textContent = "Enter a car price to see your estimate.";
+            return;
+        }
+
+        const r = calcEMI(price, down, rate, months);
+        const total = r.down + r.loan + r.interest;
+        const pd = r.down / total * 100, pl = r.loan / total * 100, pi = r.interest / total * 100;
+
+        $("barDown").style.width = pd + "%";
+        $("barLoan").style.width = pl + "%";
+        $("barInt").style.width = pi + "%";
+        $("pcDown").textContent = Math.round(pd) + "%";
+        $("pcLoan").textContent = Math.round(pl) + "%";
+        $("pcInt").textContent = Math.round(pi) + "%";
+        $("totalPay").textContent = money(Math.round(total));
+        $("pillEmi").textContent = money(Math.round(r.emi));
+
+        const yrs = months / 12;
+        $("resultHint").textContent = "Loan of " + money(Math.round(r.loan)) + " over " + yrs + (yrs === 1 ? " year" : " years") + ".";
+    }
+
+    function refresh() {
+        document.querySelectorAll("input[type=range]").forEach(fillTrack);
+        syncChips();
+        updateExtras();
+    }
+
+    pairs.forEach(([numId, rangeId]) => {
+        const num = $(numId), range = $(rangeId);
+        range.addEventListener("input", () => { num.value = range.value; fire(num); });
+        num.addEventListener("input", () => { range.value = num.value; refresh(); });
+    });
+    $("emiMonths").addEventListener("input", refresh);
+
+    $("priceChips").addEventListener("click", e => {
+        const c = e.target.closest(".chip"); if (!c) return;
+        $("emiPrice").value = c.dataset.v; fire($("emiPrice"));
+    });
+    $("tenureChips").addEventListener("click", e => {
+        const c = e.target.closest(".chip"); if (!c) return;
+        $("emiMonths").value = c.dataset.v; fire($("emiMonths"));
+    });
+    $("emiReset").addEventListener("click", () => {
+        Object.entries(defaults).forEach(([id, v]) => { $(id).value = v; });
+        pairs.forEach(([n, r]) => { $(r).value = $(n).value; });
+        fire($("emiPrice"));
+    });
+
+    refresh();
+
+    /* floating EMI pill: show it when the result card is off screen */
+    if ("IntersectionObserver" in window) {
+        new IntersectionObserver(entries => {
+            $("emiPill").classList.toggle("show", !entries[0].isIntersecting);
+        }, { threshold: 0 }).observe($("emiResult"));
+    }
+    $("emiPill").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+    /* ---------- loan request + live status ---------- */
+    const LOAN_STEPS = [["New", "Requested"], ["Contacted", "Contacted"], ["Applied", "Applied"], ["Approved", "Approved"]];
+    const STEP_OF = { New: 0, Contacted: 1, Applied: 2, Approved: 3, Disbursed: 3 };
+    const TEXT = {
+        New: ["Request received", "A loan expert will call you within 24 hours."],
+        Contacted: ["Expert contacted you", "Check your phone for the bank offers we shared."],
+        Applied: ["Application with the bank", "The bank is reviewing your application."],
+        Approved: ["Loan approved 🎉", "Great news! Our team will guide you with the next steps."],
+        Disbursed: ["Loan disbursed 🎉", "Your loan amount has been released. Congratulations!"]
+    };
+    const REOPEN = ["Rejected", "Declined", "Closed", "Cancelled", "Lost"];
+    const SEEN_KEY = "ct_loan_seen";
+    let lead = null, pulling = false;
+
+    function inputs() {
+        return {
+            car_price: parseFloat($("emiPrice").value) || 0,
+            down_payment_pct: Math.min(90, Math.max(0, parseFloat($("emiDown").value) || 0)),
+            interest_rate: Math.min(30, Math.max(0, parseFloat($("emiRate").value) || 0)),
+            tenure_months: parseInt($("emiMonths").value, 10) || 60
+        };
+    }
+
+    function renderLoan() {
+        const box = $("loanCta");
+        box.classList.remove("sent", "ok", "bad", "reopen", "has-note");
+
+        if (!lead) {
+            $("lcTitle").textContent = "Want this loan?";
+            $("lcText").textContent = "Our partner banks will call you with their best offers. Free and no obligation.";
+            $("loanOpen").textContent = "Get this loan offer →";
+            return;
+        }
+
+        const st = String(lead.status || "New");
+        const closed = REOPEN.indexOf(st) > -1;
+        box.classList.add("sent");
+
+        if (closed) {
+            box.classList.add("bad", "reopen");
+            $("lcTitle").textContent = st === "Rejected" || st === "Declined" ? "Not approved this time" : "Request closed";
+            $("lcText").textContent = "You can change the numbers and send a new request anytime.";
+            $("loanOpen").textContent = "Send a new request →";
+            $("lcTrack").innerHTML = "";
+        } else {
+            const t = TEXT[st] || [st, "Our team will keep you updated here."];
+            $("lcTitle").textContent = t[0];
+            $("lcText").textContent = t[1];
+            if (st === "Approved" || st === "Disbursed") box.classList.add("ok");
+            const cur = STEP_OF[st] != null ? STEP_OF[st] : 0;
+            $("lcTrack").innerHTML = trackerHTML(LOAN_STEPS, cur);
+        }
+
+        /* optional extra info, only shown if the admin filled it in */
+        const bits = [];
+        if (lead.bank_name) bits.push("<b>Bank:</b> " + escapeHTML(lead.bank_name));
+        if (lead.admin_note) bits.push("<b>Note from our team:</b> " + escapeHTML(lead.admin_note));
+        $("lcNote").innerHTML = bits.join("<br>");
+        if (bits.length) box.classList.add("has-note");
+
+        $("lcWhen").textContent = "Live status · checked " + new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+    }
+
+    /* tells the customer when the status changed since their last visit (localStorage is only a convenience) */
+    function notifyIfChanged() {
+        if (!lead || lead.id == null) return;
+        const now = { id: lead.id, status: lead.status };
+        let seen = null;
+        try { seen = JSON.parse(localStorage.getItem(SEEN_KEY) || "null"); } catch (e) { /* ignore */ }
+        if (seen && seen.id === now.id && seen.status !== now.status) {
+            const t = TEXT[now.status];
+            showMessage("Loan update: " + (t ? t[0] : now.status));
+        }
+        try { localStorage.setItem(SEEN_KEY, JSON.stringify(now)); } catch (e) { /* ignore */ }
+    }
+
+    async function pullLeads() {
+        if (pulling) return;
+        pulling = true;
+        try {
+            const result = await fetchJSON("/api/customer/finance-leads", { cache: "no-store" });
+            if (!result.ok) return;                       /* server hiccup: keep showing what we had */
+            const leads = (result.data.leads || []).slice().sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
+            lead = leads[0] || null;
+            notifyIfChanged();
+            renderLoan();
+        } catch (e) { /* offline or timeout: keep showing what we had */ }
+        finally { pulling = false; }
+    }
+
+    function openLoan() {
+        const v = inputs();
+        if (v.car_price < 50000) { showMessage("Enter a car price of at least ₹50,000.", "danger"); return; }
+        const r = calcEMI(v.car_price, v.down_payment_pct, v.interest_rate, v.tenure_months);
+
+        openSheet(`
+            <h3 id="sheetTitle" class="sheet-title">Get your loan offer</h3>
+            <p class="sheet-sub">A loan expert will call you with offers from partner banks.</p>
+            <div class="lm-sum">
+                <div><small>Loan</small><b>${money(Math.round(r.loan))}</b></div>
+                <div><small>EMI</small><b>${money(Math.round(r.emi))}</b></div>
+                <div><small>Tenure</small><b>${v.tenure_months} mo</b></div>
+            </div>
+            <form class="lm-form" id="loanForm" novalidate>
+                <div class="lm-two">
+                    <label class="f">Phone number<input class="input" type="tel" id="lfPhone" inputmode="tel" autocomplete="tel" maxlength="16" value="${escapeHTML(PHONE)}" placeholder="10 digit mobile"></label>
+                    <label class="f">City<input class="input" type="text" id="lfCity" autocomplete="address-level2" maxlength="60" placeholder="e.g. Madurai"></label>
+                </div>
+                <label class="f">You are
+                    <select class="select" id="lfJob">
+                        <option value="">Select</option>
+                        <option>Salaried</option><option>Self-employed</option><option>Business owner</option><option>Other</option>
+                    </select>
+                </label>
+                <label class="lm-consent"><input type="checkbox" id="lfConsent"><span>I agree that CarTogether can share my name, phone and these loan details with partner banks so they can contact me.</span></label>
+                <div class="lm-err" id="lfErr" role="alert"></div>
+                <button type="submit" class="btn btn-primary" id="lfSubmit">Send my request</button>
+            </form>`);
+        $("loanForm").addEventListener("submit", submitLoan);
+    }
+
+    async function submitLoan(e) {
+        e.preventDefault();
+        const err = $("lfErr"), btn = $("lfSubmit");
+        if (btn.disabled) return;
+        err.textContent = "";
+
+        if (String($("lfPhone").value).replace(/\D/g, "").length < 10) { err.textContent = "Enter a valid 10 digit phone number."; return; }
+        if (!$("lfJob").value) { err.textContent = "Select your employment type."; return; }
+        if (!$("lfConsent").checked) { err.textContent = "Please tick the box to continue."; return; }
+
+        btn.disabled = true; btn.classList.add("is-loading");
+        try {
+            const result = await fetchJSON("/api/customer/finance-leads", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(Object.assign(inputs(), {
+                    phone: $("lfPhone").value.trim(),
+                    city: $("lfCity").value.trim(),
+                    employment: $("lfJob").value,
+                    consent: true
+                }))
+            });
+            const data = result.data;
+            if (!result.ok || !data.success) throw new Error(data.message || "Unable to send your request.");
+            closeSheet();
+            showMessage(data.message || "Request sent.", "success");
+            lead = { status: "New" };                    /* show instantly, then confirm with the server */
+            renderLoan();
+            await pullLeads();
+        } catch (error) {
+            err.textContent = friendlyError(error);
+        } finally {
+            btn.disabled = false; btn.classList.remove("is-loading");
+        }
+    }
+
+    $("loanOpen").addEventListener("click", openLoan);
+    $("lcRefresh").addEventListener("click", async function () {
+        this.disabled = true; this.textContent = "Checking...";
+        await pullLeads();
+        this.disabled = false; this.textContent = "↻ Refresh";
+    });
+
+    /* keep the status fresh: on load, every 25s while the page is visible, and whenever the user comes back to it */
+    pullLeads();
+    setInterval(() => { if (!document.hidden) pullLeads(); }, 25000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) pullLeads(); });
+    window.addEventListener("focus", pullLeads);
+    window.addEventListener("pageshow", e => { if (e.persisted) pullLeads(); });
+})();
+</script>
+{% endblock %}

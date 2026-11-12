@@ -1,0 +1,49 @@
+{% extends "customer/base.html" %}
+{% block title %}My Groups{% endblock %}
+{% block eyebrow %}Your journey{% endblock %}
+{% block heading %}My Groups &amp; Offers{% endblock %}
+
+{% block head_extra %}
+<style>
+/* Cards, tracker, seat map, skeleton, empty and error states all come from base.html.
+   On wide screens, show two journey cards side by side instead of one long column. */
+@media (min-width: 960px) {
+    #myGroupsGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+    #myGroupsGrid .group-card.journey { grid-column: auto; max-width: none; }
+}
+
+/* Old car quote banner */
+.sell-banner { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; background: linear-gradient(135deg, #0b1b3a 0%, #1c3563 100%); color: #fff; border-radius: 22px; padding: 18px 22px; margin-bottom: 20px; font-family: inherit; }
+.sell-banner b { display: block; font-size: 17px; letter-spacing: -.01em; }
+.sell-banner span { display: block; font-size: 13.5px; color: #b6c6e4; margin-top: 2px; }
+.sell-banner a { background: #ff6a1a; color: #fff; text-decoration: none; font-weight: 800; font-size: 14px; padding: 11px 18px; border-radius: 13px; white-space: nowrap; }
+.sell-banner a:hover { background: #d9520a; }
+.sell-banner .sell-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.sell-banner a.alt { background: rgba(255,255,255,.14); }
+.sell-banner a.alt:hover { background: rgba(255,255,255,.26); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<p class="page-intro">Track every group you joined: your seat, dealer offers, votes and delivery, all in one place.</p>
+
+<div class="sell-banner">
+    <div>
+        <b>🚗 Pazhaya car irukka?</b>
+        <span>Pudhu car vaanga munnadi, pazhaya car-ku free quote vaangunga.</span>
+    </div>
+    <div class="sell-actions">
+        <a href="{{ url_for('customer_profile_page') }}#sell-car">Car quote</a>
+        <a class="alt" href="{{ url_for('customer_profile_page') }}#insurance">🛡 Insurance quote</a>
+    </div>
+</div>
+
+{# Keep this grid EMPTY: base.html shows loading skeletons only while it has no children. #}
+<div class="group-grid" id="myGroupsGrid" aria-busy="true"></div>
+
+<noscript>
+    <div class="empty-state"><h3>JavaScript is needed</h3><p>Please turn on JavaScript to see your groups.</p></div>
+</noscript>
+
+{% endblock %}

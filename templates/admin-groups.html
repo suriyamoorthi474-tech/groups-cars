@@ -1,0 +1,442 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Groups | CarTogether</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f4f6fa;
+    color: #1e293b;
+}
+
+.sidebar {
+    width: 240px;
+    height: 100vh;
+    background: #172033;
+    color: white;
+    position: fixed;
+    padding: 25px 18px;
+}
+
+.logo {
+    font-size: 23px;
+    font-weight: bold;
+    margin-bottom: 40px;
+}
+
+.sidebar a {
+    display: block;
+    color: #cbd5e1;
+    text-decoration: none;
+    padding: 14px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background: #344563;
+    color: white;
+}
+
+.main {
+    margin-left: 240px;
+    padding: 30px;
+}
+
+.header {
+    margin-bottom: 28px;
+}
+
+.header h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.header p {
+    color: #64748b;
+}
+
+.card {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px #00000008;
+}
+
+.card h2 {
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.field label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.field input,
+.field select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    font-size: 14px;
+    background: white;
+}
+
+.create-btn {
+    margin-top: 20px;
+    padding: 12px 22px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.create-btn:hover {
+    background: #1d4ed8;
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 650px;
+}
+
+th, td {
+    padding: 15px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    font-size: 14px;
+}
+
+th {
+    background: #f8fafc;
+    color: #475569;
+}
+
+.status {
+    background: #dcfce7;
+    color: #166534;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.delete-btn {
+    padding: 8px 12px;
+    border: none;
+    background: #fee2e2;
+    color: #b91c1c;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.message {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.success {
+    color: #15803d;
+}
+
+.error {
+    color: #dc2626;
+}
+
+@media(max-width: 700px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+    }
+
+    .main {
+        margin-left: 0;
+        padding: 18px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+    <div class="logo">CarTogether</div>
+
+    <a href="/admin-dashboard">Dashboard</a>
+    <a href="/admin-dashboard">Manage Cars</a>
+    <a href="/admin-interests">Customer Interests</a>
+    <a href="/admin-groups" class="active">Manage Groups</a>
+    <a href="/admin-logout">Logout</a>
+</aside>
+
+<main class="main">
+
+    <div class="header">
+        <h1>Group Management</h1>
+        <p>Create and manage customer car groups</p>
+    </div>
+
+    <section class="card">
+        <h2>Create New Group</h2>
+
+        <form id="groupForm">
+            <div class="form-grid">
+
+                <div class="field">
+                    <label for="carId">Select Car</label>
+                    <select id="carId" required>
+                        <option value="">Loading cars...</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="groupName">Group Name</label>
+                    <input
+                        type="text"
+                        id="groupName"
+                        placeholder="Example: Swift Chennai Group"
+                        required
+                    >
+                </div>
+
+                <div class="field">
+                    <label for="targetMembers">Target Members</label>
+                    <input
+                        type="number"
+                        id="targetMembers"
+                        value="10"
+                        min="1"
+                        required
+                    >
+                </div>
+
+            </div>
+
+            <button class="create-btn" type="submit">
+                + Create Group
+            </button>
+
+            <p id="formMessage" class="message"></p>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>All Car Groups</h2>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Group Name</th>
+                        <th>Car ID</th>
+                        <th>Members</th>
+                        <th>Target</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="groupsBody">
+                    <tr>
+                        <td colspan="7">Loading groups...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+<script>
+const carSelect = document.getElementById("carId");
+const groupForm = document.getElementById("groupForm");
+const formMessage = document.getElementById("formMessage");
+const groupsBody = document.getElementById("groupsBody");
+
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[char]);
+}
+
+async function loadCars() {
+    try {
+        const response = await fetch("/api/admin/cars");
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Unable to load cars.");
+        }
+
+        const cars = Array.isArray(data) ? data : (data.cars || []);
+
+        carSelect.innerHTML = '<option value="">Select a car</option>';
+
+        cars.forEach(car => {
+            const option = document.createElement("option");
+            option.value = car.id;
+            option.textContent =
+                `${car.brand} ${car.model} ${car.variant || ""}`;
+            carSelect.appendChild(option);
+        });
+
+        if (!cars.length) {
+            carSelect.innerHTML =
+                '<option value="">No cars available</option>';
+        }
+
+    } catch (error) {
+        carSelect.innerHTML =
+            '<option value="">Unable to load cars</option>';
+        console.error(error);
+    }
+}
+
+async function loadGroups() {
+    groupsBody.innerHTML =
+        '<tr><td colspan="7">Loading groups...</td></tr>';
+
+    try {
+        const response = await fetch("/api/admin/groups");
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Unable to load groups.");
+        }
+
+        if (!data.groups || data.groups.length === 0) {
+            groupsBody.innerHTML =
+                '<tr><td colspan="7">No groups created yet.</td></tr>';
+            return;
+        }
+
+        groupsBody.innerHTML = data.groups.map(group => `
+            <tr>
+                <td>${escapeHTML(group.group_name)}</td>
+                <td>${escapeHTML(group.car_id)}</td>
+                <td>${escapeHTML(group.member_count ?? 0)}</td>
+                <td>${escapeHTML(group.target_members)}</td>
+                <td><span class="status">${escapeHTML(group.status)}</span></td>
+                <td>${group.created_at
+                    ? new Date(group.created_at).toLocaleDateString("en-IN")
+                    : "-"}</td>
+                <td>
+                    <button class="delete-btn"
+                        onclick="deleteGroup(${Number(group.id)})">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        `).join("");
+
+    } catch (error) {
+        groupsBody.innerHTML =
+            `<tr><td colspan="7" class="error">${escapeHTML(error.message)}</td></tr>`;
+    }
+}
+
+groupForm.addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    formMessage.textContent = "Creating group...";
+    formMessage.className = "message";
+
+    const payload = {
+        car_id: carSelect.value,
+        group_name: document.getElementById("groupName").value.trim(),
+        target_members: document.getElementById("targetMembers").value
+    };
+
+    try {
+        const response = await fetch("/api/admin/groups", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Group creation failed.");
+        }
+
+        formMessage.textContent = data.message;
+        formMessage.className = "message success";
+
+        groupForm.reset();
+        document.getElementById("targetMembers").value = 10;
+
+        await loadGroups();
+
+    } catch (error) {
+        formMessage.textContent = error.message;
+        formMessage.className = "message error";
+    }
+});
+
+async function deleteGroup(groupId) {
+    if (!confirm("Are you sure you want to delete this group?")) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/admin/groups/${groupId}`, {
+            method: "DELETE"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Unable to delete group.");
+        }
+
+        alert(data.message);
+        await loadGroups();
+
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+loadCars();
+loadGroups();
+</script>
+
+</body>
+</html>

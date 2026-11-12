@@ -1,0 +1,41 @@
+{# Sponsored banner. Set ad_placement before including:
+   {% set ad_placement = 'home' %}{% include 'customer/_ad_banner.html' %}
+   placements: home, cars, emi, my_groups #}
+{% set ads = get_ads(ad_placement) %}
+{% if ads %}
+<div class="ad-strip" aria-label="Sponsored">
+  {% for ad in ads %}
+  <a class="ad-card" href="{{ url_for('ad_click', ad_id=ad.id) }}"
+     target="_blank" rel="noopener sponsored">
+    {% if ad.image_url %}
+      <img src="{{ ad.image_url }}" alt="" loading="lazy">
+    {% endif %}
+    <div class="ad-text">
+      <span class="ad-label">Sponsored</span>
+      <strong>{{ ad.title }}</strong>
+      {% if ad.description %}<p>{{ ad.description }}</p>{% endif %}
+      <small>{{ ad.advertiser_name }}</small>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+<style>
+  .ad-strip { display:grid; gap:12px; margin:20px 0;
+              grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); }
+  .ad-card { display:flex; gap:14px; align-items:center; padding:14px;
+             border:1px solid var(--line, #e5e7eb);
+             border-radius:var(--r-card, 18px);
+             background:var(--card, #fff); color:var(--ink, #111);
+             text-decoration:none; }
+  .ad-card img { width:72px; height:72px; object-fit:cover;
+                 border-radius:12px; flex:none; }
+  .ad-text { min-width:0; }
+  .ad-text strong { display:block; font-size:15px; overflow-wrap:anywhere; }
+  .ad-text p { margin:2px 0; font-size:13px; color:var(--ink-2, #555); }
+  .ad-text small { color:var(--muted, #888); font-size:12px; }
+  .ad-label { display:inline-block; font-size:10px; font-weight:600;
+              letter-spacing:.5px; text-transform:uppercase;
+              color:var(--muted, #888); border:1px solid var(--line, #ccc);
+              border-radius:6px; padding:0 6px; margin-bottom:3px; }
+</style>
+{% endif %}

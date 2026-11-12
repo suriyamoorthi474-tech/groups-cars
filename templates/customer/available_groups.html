@@ -1,0 +1,258 @@
+{% extends "customer/base.html" %}
+{% block title %}Available Groups{% endblock %}
+{% block eyebrow %}Join a group{% endblock %}
+{% block heading %}Available Groups{% endblock %}
+
+{% block head_extra %}
+<style>
+/* page-specific only. Everything else comes from base.html */
+.ag-sort { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.ag-sort .lbl { font-size: 12px; font-weight: 700; color: var(--muted); }
+.ag-sort .select { min-height: 44px; width: auto; padding: 8px 12px; font-size: 14px; }
+
+/* car photo on top of every card */
+.ag-card { padding: 0; overflow: hidden; gap: 0; }
+.ag-media { position: relative; height: 190px; background: var(--card-2); }
+.ag-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ag-media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(16,17,20,.35) 0%, transparent 40%, rgba(16,17,20,.55) 100%); pointer-events: none; }
+.ag-ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 64px; background: var(--card-2); }
+.ag-seat { position: absolute; z-index: 2; left: 14px; top: 14px; background: rgba(11,12,16,.85); color: #fff; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 999px; }
+.ag-seat.hot { background: var(--lime); color: #101114; }
+.ag-seat.done { background: var(--success); color: #07210f; }
+.ag-timer { position: absolute; z-index: 2; right: 14px; top: 14px; }
+.ag-body { display: flex; flex-direction: column; gap: 12px; padding: 16px; flex: 1; }
+.ag-name { font-size: 20px; font-weight: 700; letter-spacing: -.03em; line-height: 1.15; overflow-wrap: anywhere; }
+.ag-car { color: var(--muted); font-size: 14px; font-weight: 500; overflow-wrap: anywhere; margin-top: 2px; }
+.ag-body .price-chip { margin-top: 0; }
+.ag-links { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.ag-links a { color: var(--acc-text); font-weight: 700; font-size: 14px; text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
+@media (max-width: 600px) {
+    .ag-sort { margin-left: 0; width: 100%; }
+    .ag-sort .select { flex: 1; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<p class="page-intro">
+    Dealer offers are shown before you join, so you can see the <b>price first</b>.
+    Tap <b>Join group</b> to take your seat in the car.
+</p>
+
+<div class="activity" id="activityFeed" role="status" aria-live="polite">
+    <span class="live">LIVE</span>
+    <span class="txt" id="activityText"></span>
+</div>
+
+<div class="toolbar" role="search">
+    <div class="search-box">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="search" id="agSearch" placeholder="Search by group, brand or model" autocomplete="off" aria-label="Search groups">
+        <button type="button" class="search-clear" id="agClear" aria-label="Clear search">✕</button>
+    </div>
+    <div class="filter-row">
+        <span class="lbl">Show</span>
+        <button type="button" class="chip on" data-filter="all" aria-pressed="true">All</button>
+        <button type="button" class="chip" data-filter="open" aria-pressed="false">Open to join</button>
+        <button type="button" class="chip" data-filter="almost" aria-pressed="false">Almost full</button>
+        <button type="button" class="chip" data-filter="offers" aria-pressed="false">Has offers</button>
+        <button type="button" class="chip" data-filter="joined" aria-pressed="false">Joined</button>
+        <label class="ag-sort">
+            <span class="lbl">Sort</span>
+            <select class="select" id="agSort" aria-label="Sort groups">
+                <option value="filled">Most filled</option>
+                <option value="seats">Fewest seats left</option>
+                <option value="price">Lowest best offer</option>
+                <option value="name">Name A to Z</option>
+            </select>
+        </label>
+    </div>
+</div>
+
+<div class="result-bar">
+    <span id="agCount" aria-live="polite">Loading groups...</span>
+    <button type="button" class="reset-btn" id="agReset">Reset filters</button>
+</div>
+
+<section class="group-grid" id="availableGroupsGrid" aria-busy="true" aria-label="Available groups">
+    <div class="group-card is-skeleton" aria-hidden="true">
+        <div class="skel" style="height:190px;border-radius:24px"></div>
+        <div class="skel" style="width:70%;height:20px"></div>
+        <div class="skel" style="width:45%;height:14px"></div>
+        <div class="skel" style="height:48px;border-radius:16px;margin-top:auto"></div>
+    </div>
+</section>
+
+<div class="ag-links">
+    <span class="g-car">Want to see your offers and deal status?</span>
+    <a href="{{ url_for('customer_my_groups_page') }}">Go to My Deals →</a>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    const grid = byId("availableGroupsGrid");
+    const countEl = byId("agCount");
+    const searchEl = byId("agSearch");
+    const clearEl = byId("agClear");
+    const sortEl = byId("agSort");
+    const resetEl = byId("agReset");
+    const CARS_URL = "{{ url_for('customer_cars_page') }}";
+
+    let ALL = [];
+    const state = { q: "", filter: "all", sort: "filled" };
+
+    /* ---------- helpers ---------- */
+    const target = g => Number(g.target_members) || 0;
+    const members = g => Number(g.member_count) || 0;
+    const seatsLeft = g => Math.max(0, target(g) - members(g));
+    const pctFilled = g => target(g) ? members(g) / target(g) : 0;
+    const isOpen = g => g.status !== "Closed" && seatsLeft(g) > 0;
+    const canJoin = g => isOpen(g) && !g.is_joined;
+
+    function carName(g) {
+        const c = g.car || {};
+        return [c.brand, c.model].filter(Boolean).join(" ");
+    }
+
+    /* ---------- card (big car photo on top) ---------- */
+    function card(g) {
+        const car = g.car || {};
+        const left = seatsLeft(g);
+        const pct = Math.min(100, Math.round(pctFilled(g) * 100));
+        const closed = g.status === "Closed";
+        const full = left === 0;
+        const name = escapeHTML(g.group_name);
+        const carLine = escapeHTML(carName(g)) + (car.variant ? " · " + escapeHTML(car.variant) : "");
+
+        const img = car.image_url
+            ? '<img src="' + escapeHTML(car.image_url) + '" alt="' + escapeHTML(carName(g) || "Car") + '" loading="lazy" decoding="async" onerror="this.outerHTML=\'<div class=&quot;ag-ph&quot; aria-hidden=&quot;true&quot;>🚘</div>\'">'
+            : '<div class="ag-ph" aria-hidden="true">🚘</div>';
+
+        let seatTxt, seatCls = "";
+        if (closed) { seatTxt = g.deal_status === "Delivered" ? "Delivered" : "Deal confirmed"; seatCls = " done"; }
+        else if (full) seatTxt = "Group full";
+        else { seatTxt = left + (left === 1 ? " seat left" : " seats left"); if (left <= 2) seatCls = " hot"; }
+
+        const timer = !closed && g.closes_at ? '<span class="countdown ag-timer" data-closes="' + escapeHTML(g.closes_at) + '"></span>' : "";
+
+        let chips = "";
+        if (g.is_joined) chips = badgeHTML("success", g.my_status === "pending" ? "Seat pending" : "Joined");
+
+        let actions;
+        if (g.is_joined) {
+            actions = '<a class="btn secondary" href="/customer/groups/' + Number(g.id) + '/offers">View offers</a>';
+        } else if (closed || full) {
+            actions = '<button class="btn" disabled>' + (closed ? "Closed" : "Group full") + "</button>";
+        } else {
+            const text = 'Join our CarTogether group "' + g.group_name + '" for ' + (carName(g) || "a new car") +
+                ". Only " + left + (left === 1 ? " seat" : " seats") + " left! Register free and join here: " + location.origin + "/register";
+            actions = '<button class="btn secondary" type="button" onclick="confirmJoin(' + Number(g.id) + ', this)">Join group</button>' +
+                '<a class="btn wa" href="https://wa.me/?text=' + encodeURIComponent(text) + '" target="_blank" rel="noopener" aria-label="Invite friends on WhatsApp">' + WA_ICON + "<span>Invite</span></a>";
+        }
+
+        return '<article class="group-card ag-card">' +
+            '<div class="ag-media">' + img + '<span class="ag-seat' + seatCls + '">' + seatTxt + "</span>" + timer + "</div>" +
+            '<div class="ag-body">' +
+                "<div><div class=\"ag-name\">" + name + '</div><div class="ag-car">' + carLine + "</div></div>" +
+                (chips ? '<div class="chips">' + chips + "</div>" : "") +
+                priceHTMLFor(g) +
+                "<div>" + crowdHTML(members(g), target(g), pct) + "</div>" +
+                '<div class="card-actions">' + actions + "</div>" +
+            "</div></article>";
+    }
+
+    /* ---------- filter / sort ---------- */
+    function matches(g) {
+        if (state.q) {
+            const c = g.car || {};
+            const hay = [g.group_name, c.brand, c.model, c.variant].filter(Boolean).join(" ").toLowerCase();
+            if (hay.indexOf(state.q) === -1) return false;
+        }
+        switch (state.filter) {
+            case "open":   return canJoin(g);
+            case "almost": return canJoin(g) && seatsLeft(g) <= 2;
+            case "offers": return (Number(g.offer_count) || 0) > 0;
+            case "joined": return !!g.is_joined;
+            default:       return true;
+        }
+    }
+    function rank(g) { return canJoin(g) ? 0 : (g.is_joined ? 1 : 2); }
+    function compare(a, b) {
+        if (rank(a) !== rank(b)) return rank(a) - rank(b);
+        switch (state.sort) {
+            case "seats": return seatsLeft(a) - seatsLeft(b);
+            case "price": return (Number(a.best_price) || Infinity) - (Number(b.best_price) || Infinity);
+            case "name":  return String(a.group_name || "").localeCompare(String(b.group_name || ""));
+            default:      return pctFilled(b) - pctFilled(a);
+        }
+    }
+    const isFiltered = () => state.q !== "" || state.filter !== "all";
+
+    function render() {
+        const list = ALL.filter(matches).sort(compare);
+        countEl.innerHTML = "<b>" + list.length + "</b> " + (list.length === 1 ? "group" : "groups") + (isFiltered() ? " found" : "");
+        resetEl.style.display = isFiltered() ? "inline-block" : "none";
+        clearEl.style.display = state.q ? "block" : "none";
+
+        if (!ALL.length) {
+            grid.innerHTML = '<div class="empty-state"><div class="es-icon" aria-hidden="true">🚘</div><h3>No Groups Available</h3>' +
+                '<p>New groups appear here when our team creates them. Tap Interested on a car you like in Browse Cars.</p>' +
+                '<a class="btn secondary" href="' + CARS_URL + '">Browse Cars</a></div>';
+        } else if (!list.length) {
+            grid.innerHTML = '<div class="empty-state"><div class="es-icon" aria-hidden="true">🔍</div><h3>No groups match</h3>' +
+                '<p>Try a different search or filter.</p><button type="button" class="btn secondary" id="agEmptyReset">Reset filters</button></div>';
+            byId("agEmptyReset").onclick = resetFilters;
+        } else {
+            grid.innerHTML = list.map(card).join("");
+        }
+        setTimeout(function () { tickCountdowns(); window.renderActivity(ALL.filter(canJoin)); }, 0);
+    }
+
+    function setChips() {
+        document.querySelectorAll("[data-filter]").forEach(function (c) {
+            const on = c.dataset.filter === state.filter;
+            c.classList.toggle("on", on);
+            c.setAttribute("aria-pressed", String(on));
+        });
+    }
+    function resetFilters() {
+        state.q = ""; state.filter = "all"; searchEl.value = "";
+        setChips(); render();
+    }
+
+    /* base calls this on page start, after a join and when the join sheet closes */
+    window.loadAvailableGroups = async function () {
+        grid.setAttribute("aria-busy", "true");
+        if (!grid.children.length || grid.querySelector(".is-error")) grid.innerHTML = skeletonCards(2);
+        try {
+            ALL = await fetchGroups();   // ALL groups: joined ones are shown too
+            render();
+        } catch (error) {
+            console.error(error);
+            countEl.textContent = "Could not load groups";
+            grid.innerHTML = errorStateHTML("Unable to Load Groups", friendlyError(error), "loadAvailableGroups");
+        } finally {
+            grid.setAttribute("aria-busy", "false");
+        }
+    };
+
+    /* events */
+    let t = null;
+    searchEl.addEventListener("input", function () {
+        clearTimeout(t);
+        clearEl.style.display = searchEl.value ? "block" : "none";
+        t = setTimeout(function () { state.q = searchEl.value.trim().toLowerCase(); render(); }, 150);
+    });
+    clearEl.addEventListener("click", function () { searchEl.value = ""; state.q = ""; render(); searchEl.focus(); });
+    document.querySelectorAll("[data-filter]").forEach(function (c) {
+        c.addEventListener("click", function () { state.filter = c.dataset.filter; setChips(); render(); });
+    });
+    sortEl.addEventListener("change", function () { state.sort = sortEl.value; render(); });
+    resetEl.addEventListener("click", resetFilters);
+})();
+</script>
+{% endblock %}

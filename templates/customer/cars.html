@@ -1,0 +1,563 @@
+{% extends "customer/base.html" %}
+{% block title %}Browse Vehicles{% endblock %}
+{% block eyebrow %}Explore available vehicles{% endblock %}
+{% block heading %}Browse Vehicles{% endblock %}
+
+{% block head_extra %}
+<style>
+/* Everything else (toolbar, chips, car cards, compare tray, popups) already lives in base.html and
+   follows the dark/light theme. Only these small page-level touches are needed. */
+.search-box input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; display: none; }
+.cmp-tray { bottom: calc(var(--dock-h) + 24px + env(safe-area-inset-bottom)); }
+.car-card .interest-btn.is-loading::after { border-top-color: #101114; }
+
+/* vehicle type tabs (All / Car / Bike ...) are normal links that reload the page with ?type= */
+.type-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+.type-tabs a.chip { text-decoration: none; display: inline-flex; align-items: center; }
+
+/* smooth popups: fade the backdrop in and out, slide the sheet out the same way it came in */
+.modal-backdrop { opacity: 0; transition: opacity var(--d-med); }
+.modal.open .modal-backdrop { opacity: 1; }
+.modal.closing .modal-backdrop { opacity: 0; }
+.modal.closing .modal-sheet { animation: popout var(--d-med) var(--ease) forwards; }
+@keyframes popout { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(18px) scale(.97); } }
+.modal.closing { pointer-events: none; }
+.modal-sheet { overscroll-behavior: contain; }
+.car-card, .cmp-toggle, .modal-x { touch-action: manipulation; }
+
+/* showroom price on the card and in the details popup */
+.car-price { margin: 2px 0 10px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.car-price b { display: block; font-size: 20px; letter-spacing: -.03em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.car-price:empty { display: none; }
+.m-price { margin: 4px 0 12px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.m-price b { display: block; font-size: 24px; letter-spacing: -.03em; color: var(--ink); font-variant-numeric: tabular-nums; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{# icon shown when a vehicle has no photo #}
+{% set icons = {'Car': '🚘', 'Bike': '🏍️', 'Scooter': '🛵', 'Electric Scooter': '🛵'} %}
+{% set type_list = vehicle_types or ['Car', 'Bike', 'Scooter', 'Electric Scooter'] %}
+{% set current_type = selected_type or '' %}
+{% set kind_word = (current_type|lower ~ 's') if current_type else 'vehicles' %}
+
+<p class="page-intro">Pick the vehicles you like. Tap <b>Interested</b> and we will match you with a buying group. Tap <b>Interested ✓</b> again to remove it.</p>
+
+<div class="type-tabs" role="navigation" aria-label="Filter by vehicle type">
+    <a class="chip {{ 'on' if not current_type else '' }}" href="{{ url_for('customer_cars_page') }}"
+       {% if not current_type %}aria-current="page"{% endif %}>All</a>
+    {% for t in type_list %}
+    <a class="chip {{ 'on' if current_type == t else '' }}" href="{{ url_for('customer_cars_page', type=t) }}"
+       {% if current_type == t %}aria-current="page"{% endif %}>{{ icons.get(t, '') }} {{ t }}</a>
+    {% endfor %}
+</div>
+
+{% if cars %}
+{# build unique fuel / gearbox lists (case-insensitive) #}
+{% set ns = namespace(fuels=[], fuel_keys=[], trans=[], trans_keys=[]) %}
+{% for c in cars %}
+    {% if c.fuel_type and (c.fuel_type|lower) not in ns.fuel_keys %}
+        {% set ns.fuel_keys = ns.fuel_keys + [c.fuel_type|lower] %}
+        {% set ns.fuels = ns.fuels + [c.fuel_type] %}
+    {% endif %}
+    {% if c.transmission and (c.transmission|lower) not in ns.trans_keys %}
+        {% set ns.trans_keys = ns.trans_keys + [c.transmission|lower] %}
+        {% set ns.trans = ns.trans + [c.transmission] %}
+    {% endif %}
+{% endfor %}
+
+<div class="toolbar">
+    <div class="search-box">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="search" id="carSearch" placeholder="Search brand, model or variant" autocomplete="off" aria-label="Search vehicles">
+        <button type="button" class="search-clear" id="searchClear" aria-label="Clear search">×</button>
+    </div>
+
+    {% if ns.fuels|length > 1 %}
+    <div class="filter-row" data-group="fuel" role="group" aria-label="Filter by fuel">
+        <span class="lbl">Fuel</span>
+        <button type="button" class="chip on" data-value="" aria-pressed="true">All</button>
+        {% for f in ns.fuels %}<button type="button" class="chip" data-value="{{ f|lower }}" aria-pressed="false">{{ f }}</button>{% endfor %}
+    </div>
+    {% endif %}
+
+    {% if ns.trans|length > 1 %}
+    <div class="filter-row" data-group="trans" role="group" aria-label="Filter by gearbox">
+        <span class="lbl">Gearbox</span>
+        <button type="button" class="chip on" data-value="" aria-pressed="true">All</button>
+        {% for t in ns.trans %}<button type="button" class="chip" data-value="{{ t|lower }}" aria-pressed="false">{{ t }}</button>{% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<div class="result-bar">
+    <span aria-live="polite">Showing <b id="shownCount">{{ cars|length }}</b> of {{ cars|length }} {{ kind_word }}</span>
+    <button type="button" class="reset-btn" id="resetFilters">Reset filters</button>
+</div>
+{% endif %}
+
+{# data-interested carries the saved interest ids as JSON, so the script below needs no Jinja inside it #}
+<div class="car-grid" id="carGrid" data-interested='{{ (interested_ids or [])|list|tojson }}'>
+    {% if cars %}
+        {% for car in cars %}
+        {% set is_int = car.id in interested_ids %}
+        {% set vtype = car.vehicle_type or 'Car' %}
+        {% set vicon = icons.get(vtype, '🚘') %}
+        <div class="car-card"
+             data-id="{{ car.id }}"
+             data-name="{{ car.brand }} {{ car.model }}"
+             data-variant="{{ car.variant or '' }}"
+             data-type-label="{{ vtype }}"
+             data-icon="{{ vicon }}"
+             data-fuel-label="{{ car.fuel_type or '' }}"
+             data-trans-label="{{ car.transmission or '' }}"
+             data-desc="{{ car.description or '' }}"
+             data-img="{{ car.image_url or '' }}"
+             data-price="{{ car.showroom_price or '' }}"
+             data-search="{{ (car.brand ~ ' ' ~ car.model ~ ' ' ~ (car.variant or ''))|lower }}"
+             data-fuel="{{ (car.fuel_type or '')|lower }}"
+             data-trans="{{ (car.transmission or '')|lower }}">
+
+            <button type="button" class="cmp-toggle" aria-pressed="false" aria-label="Compare {{ car.brand }} {{ car.model }}">+ Compare</button>
+
+            {% if car.image_url %}
+            <img src="{{ car.image_url }}" alt="{{ car.brand }} {{ car.model }}" class="car-image" loading="lazy" decoding="async"
+                 onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'car-placeholder',textContent:'{{ vicon }}'}))">
+            {% else %}
+            <div class="car-placeholder" aria-hidden="true">{{ vicon }}</div>
+            {% endif %}
+
+            <div class="car-content">
+                <h3>{{ car.brand }} {{ car.model }}</h3>
+
+                {% if car.variant %}<p class="car-variant"><b>Variant:</b> {{ car.variant }}</p>{% endif %}
+
+                <div class="car-spec">
+                    {% if vtype != 'Car' %}<span>{{ vtype }}</span>{% endif %}
+                    {% if car.fuel_type %}<span class="fuel">{{ car.fuel_type }}</span>{% endif %}
+                    {% if car.transmission %}<span>{{ car.transmission }}</span>{% endif %}
+                </div>
+
+                {# filled by the script below so the price is shown in Indian format (12,50,000) #}
+                <p class="car-price" data-price-slot></p>
+
+                <div class="card-actions">
+                    <button type="button" class="btn details-btn">Details</button>
+                    <button type="button" class="btn interest-btn {{ 'done' if is_int else '' }}" data-car="{{ car.id }}">{{ 'Interested ✓' if is_int else 'Interested →' }}</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="empty-state" id="noMatch" style="display:none">
+            <div class="es-icon" aria-hidden="true">?</div>
+            <h3>No {{ kind_word }} match your search</h3>
+            <p>Try a different name or <a href="#" id="noMatchReset">reset the filters</a>.</p>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="es-icon" aria-hidden="true">{{ icons.get(current_type, '🚘') }}</div>
+            <h3>No {{ current_type if current_type else 'Vehicles' }} Available Yet</h3>
+            <p>New {{ kind_word }} will appear here when added by admin.</p>
+        </div>
+    {% endif %}
+</div>
+
+{% if cars %}
+<!-- Vehicle details popup -->
+<div class="modal" id="carModal" aria-hidden="true">
+    <div class="modal-backdrop" data-mclose></div>
+    <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+        <button type="button" class="modal-x" data-mclose aria-label="Close">×</button>
+        <div class="m-media" id="mMedia"></div>
+        <div class="m-body">
+            <h3 id="mTitle"></h3>
+            <p class="m-variant" id="mVariant"></p>
+            <div class="car-spec" id="mSpecs"></div>
+            <p class="m-price" id="mPrice" style="display:none"></p>
+            <p class="m-desc" id="mDesc"></p>
+            <div class="m-actions">
+                <button type="button" class="btn btn-primary" id="mInterest">Interested →</button>
+                <button type="button" class="btn secondary" id="mCompare">+ Add to compare</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Compare popup -->
+<div class="modal" id="cmpModal" aria-hidden="true">
+    <div class="modal-backdrop" data-mclose></div>
+    <div class="modal-sheet wide" role="dialog" aria-modal="true" aria-labelledby="cmpTitle">
+        <button type="button" class="modal-x" data-mclose aria-label="Close">×</button>
+        <h3 class="cmp-title" id="cmpTitle">Compare vehicles</h3>
+        <div id="cmpBody"></div>
+    </div>
+</div>
+
+<!-- Compare tray -->
+<div class="cmp-tray" id="cmpTray" role="region" aria-label="Compare vehicles">
+    <div class="cmp-items" id="cmpItems"></div>
+    <span class="cmp-count" id="cmpCount"></span>
+    <button type="button" class="cmp-clear" id="cmpClear">Clear</button>
+    <button type="button" class="btn" id="cmpGo" disabled>Compare</button>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+{% if cars %}
+<script>
+/* Loaded after base.html's script, so showMessage, escapeHTML, openSheet, closeSheet, friendlyError are ready. */
+(function () {
+    const cards = Array.from(document.querySelectorAll(".car-card"));
+    if (!cards.length) return;
+
+    const $ = id => document.getElementById(id);
+    const MAX = 3;
+    const CLOSE_MS = 250;   /* matches --d-med, the popup fade-out */
+    const selected = [];
+    let current = null;
+    let modalTrigger = null;
+    let closeTimer = null;
+
+    /* vehicles this customer already showed interest in (saved ids come from the grid's data attribute) */
+    let savedIds = [];
+    try { savedIds = JSON.parse($("carGrid").dataset.interested || "[]"); } catch (_) { savedIds = []; }
+    const interested = new Set(savedIds.map(String));
+
+    const cardById = id => cards.find(c => c.dataset.id === String(id));
+
+    /* showroom price in Indian format, or "" when the admin has not set one */
+    const rupees = p => {
+        const n = Number(p);
+        return n > 0 ? "₹" + n.toLocaleString("en-IN") : "";
+    };
+
+    /* show the price on every card */
+    cards.forEach(card => {
+        const slot = card.querySelector("[data-price-slot]");
+        const text = rupees(card.dataset.price);
+        if (slot && text) slot.innerHTML = "Showroom price<b>" + escapeHTML(text) + "</b>";
+    });
+
+    const info = card => ({
+        price: rupees(card.dataset.price),
+        id: card.dataset.id,
+        name: card.dataset.name || "Vehicle",
+        variant: card.dataset.variant || "",
+        type: card.dataset.typeLabel || "",
+        icon: card.dataset.icon || "🚘",
+        fuel: card.dataset.fuelLabel || "",
+        trans: card.dataset.transLabel || "",
+        desc: card.dataset.desc || "",
+        img: card.dataset.img || ""
+    });
+
+    function say(msg, tone) { showMessage(msg, tone); }
+
+    /* ---------- popups ---------- */
+    function lockScroll() {
+        document.body.style.overflow = document.querySelector(".modal.open") ? "hidden" : "";
+    }
+    function openModal(el) {
+        clearTimeout(closeTimer);
+        document.querySelectorAll(".modal.closing").forEach(m => { m.classList.remove("open", "closing"); m.setAttribute("aria-hidden", "true"); });
+        if (!document.querySelector(".modal.open")) modalTrigger = document.activeElement;
+        el.classList.add("open");
+        el.setAttribute("aria-hidden", "false");
+        lockScroll();
+    }
+    function closeModals() {
+        const open = Array.from(document.querySelectorAll(".modal.open:not(.closing)"));
+        if (!open.length) return;
+        open.forEach(m => m.classList.add("closing"));
+        clearTimeout(closeTimer);
+        closeTimer = setTimeout(() => {
+            open.forEach(m => { m.classList.remove("open", "closing"); m.setAttribute("aria-hidden", "true"); });
+            lockScroll();
+        }, CLOSE_MS);
+        if (modalTrigger && document.contains(modalTrigger) && modalTrigger.focus) modalTrigger.focus({ preventScroll: true });
+        modalTrigger = null;
+    }
+
+    /* ---------- interest (add / remove) ---------- */
+    function paintBtn(btn, on) {
+        btn.classList.toggle("done", on);
+        btn.textContent = on ? "Interested ✓" : "Interested →";
+    }
+
+    /* update every button for one vehicle: card, details popup, compare table */
+    function paintInterest(id) {
+        id = String(id);
+        const on = interested.has(id);
+        const card = cardById(id);
+        const cardBtn = card && card.querySelector(".interest-btn");
+        if (cardBtn) paintBtn(cardBtn, on);
+        if (current && current.id === id) paintBtn($("mInterest"), on);
+        document.querySelectorAll('#cmpBody [data-int="' + id + '"]').forEach(b => paintBtn(b, on));
+    }
+
+    async function sendInterest(id, btn, wasOn) {
+        if (btn) { btn.disabled = true; btn.classList.add("is-loading"); btn.setAttribute("aria-busy", "true"); }
+        try {
+            const res = await fetch(wasOn ? "/api/car-interest/remove" : "/api/car-interest", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ car_id: Number(id) })
+            });
+            let data = {};
+            try { data = await res.json(); } catch (_) { /* non-JSON error body */ }
+            const ok = res.ok && data.success;
+            if (ok) {
+                if (wasOn) interested.delete(id); else interested.add(id);
+                paintInterest(id);
+            }
+            say(data.message || (ok ? "Done." : "Something went wrong."), ok ? "success" : "danger");
+        } catch (err) {
+            console.error(err);
+            say(friendlyError(err), "danger");
+        } finally {
+            if (btn) { btn.disabled = false; btn.classList.remove("is-loading"); btn.removeAttribute("aria-busy"); }
+        }
+    }
+
+    /* removing asks first, using the same bottom sheet as the rest of the app */
+    function confirmRemove(id, btn) {
+        const card = cardById(id);
+        openSheet(`
+            <h3 id="sheetTitle" class="sheet-title">Remove your interest?</h3>
+            <p class="sheet-sub">${escapeHTML(card ? card.dataset.name : "this vehicle")}</p>
+            <p style="color:var(--ink-2);font-size:14.5px;margin-bottom:18px">You can tap Interested again anytime to add it back.</p>
+            <div class="sheet-actions">
+                <button type="button" class="btn btn-danger" id="removeYes">Yes, remove</button>
+                <button type="button" class="btn btn-ghost" data-close>Keep it</button>
+            </div>`);
+        const yes = $("removeYes");
+        if (yes) yes.onclick = function () { closeSheet(); sendInterest(id, btn, true); };
+    }
+
+    function toggleInterest(id, btn) {
+        id = String(id);
+        if (interested.has(id)) { confirmRemove(id, btn); return; }
+        return sendInterest(id, btn, false);
+    }
+
+    /* ---------- selection / tray ---------- */
+    function refresh() {
+        cards.forEach(c => {
+            const on = selected.includes(c.dataset.id);
+            c.classList.toggle("selected", on);
+            const b = c.querySelector(".cmp-toggle");
+            b.classList.toggle("on", on);
+            b.textContent = on ? "✓ Comparing" : "+ Compare";
+            b.setAttribute("aria-pressed", String(on));
+        });
+
+        $("cmpItems").innerHTML = selected.map(id => {
+            const c = info(cardById(id));
+            return `<span class="cmp-chip">${escapeHTML(c.name)}<button type="button" data-rm="${escapeHTML(id)}" aria-label="Remove ${escapeHTML(c.name)}">×</button></span>`;
+        }).join("");
+
+        $("cmpTray").classList.toggle("show", selected.length > 0);
+        document.body.classList.toggle("tray-on", selected.length > 0);
+        $("cmpCount").textContent = selected.length + (selected.length === 1 ? " vehicle selected" : " vehicles selected");
+        const go = $("cmpGo");
+        go.disabled = selected.length < 2;
+        go.textContent = selected.length < 2 ? "Pick 1 more" : "Compare " + selected.length;
+
+        if (current) $("mCompare").textContent = selected.includes(current.id) ? "✓ Added to compare" : "+ Add to compare";
+    }
+
+    function toggleCompare(id) {
+        id = String(id);
+        const i = selected.indexOf(id);
+        if (i > -1) selected.splice(i, 1);
+        else if (selected.length >= MAX) { say("You can compare up to " + MAX + " vehicles.", "danger"); return; }
+        else selected.push(id);
+        refresh();
+    }
+
+    /* ---------- details popup ---------- */
+    function openDetails(id) {
+        const card = cardById(id);
+        if (!card) return;
+        const car = info(card);
+        current = car;
+
+        const media = $("mMedia");
+        media.innerHTML = "";
+        const placeholder = '<div class="car-placeholder" aria-hidden="true">' + escapeHTML(car.icon) + '</div>';
+        if (car.img) {
+            const im = document.createElement("img");
+            im.className = "m-img"; im.alt = car.name; im.src = car.img;
+            im.onerror = () => { media.innerHTML = placeholder; };
+            media.appendChild(im);
+        } else {
+            media.innerHTML = placeholder;
+        }
+
+        $("mTitle").textContent = car.name;
+        $("mVariant").textContent = car.variant ? "Variant: " + car.variant : "";
+        $("mVariant").style.display = car.variant ? "block" : "none";
+        $("mSpecs").innerHTML =
+            (car.type && car.type !== "Car" ? `<span>${escapeHTML(car.type)}</span>` : "") +
+            (car.fuel ? `<span class="fuel">${escapeHTML(car.fuel)}</span>` : "") +
+            (car.trans ? `<span>${escapeHTML(car.trans)}</span>` : "");
+        const mp = $("mPrice");
+        if (car.price) { mp.innerHTML = "Showroom price<b>" + escapeHTML(car.price) + "</b>"; mp.style.display = "block"; }
+        else { mp.innerHTML = ""; mp.style.display = "none"; }
+        $("mDesc").textContent = car.desc || "More details for this vehicle will be added soon.";
+
+        const mi = $("mInterest");
+        mi.disabled = false;
+        paintBtn(mi, interested.has(car.id));
+
+        refresh();
+        openModal($("carModal"));
+        $("carModal").querySelector(".modal-x").focus({ preventScroll: true });
+    }
+
+    $("mInterest").addEventListener("click", function () {
+        if (current) toggleInterest(current.id, this);
+    });
+    $("mCompare").addEventListener("click", () => { if (current) toggleCompare(current.id); });
+
+    /* ---------- compare popup ---------- */
+    function openCompare() {
+        if (selected.length < 2) return;
+        const cars = selected.map(id => info(cardById(id)));
+        const rows = [["Showroom price", "price"], ["Type", "type"], ["Variant", "variant"], ["Fuel", "fuel"], ["Gearbox", "trans"], ["About", "desc"]];
+
+        $("cmpBody").innerHTML = `
+            <div class="cmp-scroll"><table class="cmp-table" style="--n:${cars.length}">
+                <thead><tr><th></th>${cars.map(c => `
+                    <th>${c.img
+                        ? `<img src="${escapeHTML(c.img)}" alt="" onerror="this.style.display='none'">`
+                        : `<div class="cmp-ph" aria-hidden="true">${escapeHTML(c.icon)}</div>`}
+                        <b>${escapeHTML(c.name)}</b></th>`).join("")}</tr></thead>
+                <tbody>
+                    ${rows.map(([label, key]) => `<tr><th scope="row">${label}</th>${cars.map(c =>
+                        `<td><div class="clip">${escapeHTML(c[key] || "—")}</div></td>`).join("")}</tr>`).join("")}
+                    <tr><th></th>${cars.map(c => {
+                        const on = interested.has(c.id);
+                        return `<td><button type="button" class="btn btn-primary interest-btn ${on ? "done" : ""}" data-int="${escapeHTML(c.id)}">${on ? "Interested ✓" : "Interested →"}</button></td>`;
+                    }).join("")}</tr>
+                </tbody>
+            </table></div>`;
+
+        openModal($("cmpModal"));
+        $("cmpModal").querySelector(".modal-x").focus({ preventScroll: true });
+    }
+
+    $("cmpBody").addEventListener("click", function (e) {
+        const b = e.target.closest("[data-int]");
+        if (b) toggleInterest(b.dataset.int, b);
+    });
+
+    /* ---------- events ---------- */
+    $("carGrid").addEventListener("click", e => {
+        const card = e.target.closest(".car-card");
+        if (!card) return;
+        if (e.target.closest(".cmp-toggle")) return toggleCompare(card.dataset.id);
+        const ib = e.target.closest(".interest-btn");
+        if (ib) return toggleInterest(card.dataset.id, ib);
+        if (e.target.closest(".details-btn, .car-image, .car-placeholder, .car-content h3")) openDetails(card.dataset.id);
+    });
+
+    $("cmpItems").addEventListener("click", e => {
+        const rm = e.target.closest("[data-rm]");
+        if (rm) toggleCompare(rm.dataset.rm);
+    });
+    $("cmpClear").addEventListener("click", () => { selected.length = 0; refresh(); });
+    $("cmpGo").addEventListener("click", openCompare);
+
+    document.querySelectorAll("[data-mclose]").forEach(el => el.addEventListener("click", closeModals));
+
+    /* Escape closes the popup; Tab stays inside it. If the bottom sheet is open, base.html handles those keys. */
+    document.addEventListener("keydown", e => {
+        const sheet = $("sheet");
+        if (sheet && !sheet.hidden) return;
+        const open = document.querySelector(".modal.open:not(.closing)");
+        if (!open) return;
+        if (e.key === "Escape") { closeModals(); return; }
+        if (e.key !== "Tab") return;
+        const focusable = Array.from(open.querySelectorAll("button:not([disabled]), a[href], input, select, textarea"));
+        if (!focusable.length) return;
+        const first = focusable[0], last = focusable[focusable.length - 1];
+        if (!open.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+        else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+
+    refresh();
+})();
+</script>
+
+<script>
+/* search + filters */
+(function () {
+    const grid = document.getElementById("carGrid");
+    const search = document.getElementById("carSearch");
+    if (!grid || !search) return;
+
+    const cards = Array.from(grid.querySelectorAll(".car-card"));
+    const clearBtn = document.getElementById("searchClear");
+    const resetBtn = document.getElementById("resetFilters");
+    const shown = document.getElementById("shownCount");
+    const noMatch = document.getElementById("noMatch");
+    const state = { fuel: "", trans: "" };
+
+    function apply() {
+        const q = search.value.trim().toLowerCase();
+        let count = 0;
+
+        cards.forEach(card => {
+            const ok =
+                (!q || card.dataset.search.includes(q)) &&
+                (!state.fuel || card.dataset.fuel === state.fuel) &&
+                (!state.trans || card.dataset.trans === state.trans);
+            card.classList.toggle("hide", !ok);
+            if (ok) count++;
+        });
+
+        shown.textContent = count;
+        noMatch.style.display = count ? "none" : "block";
+        clearBtn.style.display = search.value ? "block" : "none";
+        resetBtn.style.display = (q || state.fuel || state.trans) ? "inline-flex" : "none";
+    }
+
+    function setChip(row, chip) {
+        row.querySelectorAll(".chip").forEach(c => {
+            const on = c === chip;
+            c.classList.toggle("on", on);
+            c.setAttribute("aria-pressed", String(on));
+        });
+    }
+
+    function resetAll() {
+        search.value = "";
+        state.fuel = state.trans = "";
+        document.querySelectorAll(".filter-row").forEach(row => setChip(row, row.querySelector(".chip")));
+        apply();
+    }
+
+    search.addEventListener("input", apply);
+    clearBtn.addEventListener("click", () => { search.value = ""; apply(); search.focus(); });
+    resetBtn.addEventListener("click", resetAll);
+    document.getElementById("noMatchReset").addEventListener("click", e => { e.preventDefault(); resetAll(); });
+
+    document.querySelectorAll(".filter-row").forEach(row => {
+        row.addEventListener("click", e => {
+            const chip = e.target.closest(".chip");
+            if (!chip) return;
+            setChip(row, chip);
+            state[row.dataset.group] = chip.dataset.value;
+            apply();
+        });
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

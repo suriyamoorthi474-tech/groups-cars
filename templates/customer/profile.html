@@ -1,0 +1,315 @@
+{% extends "customer/base.html" %}
+{% block title %}My Profile{% endblock %}
+{% block eyebrow %}Your account{% endblock %}
+{% block heading %}My Profile{% endblock %}
+
+{% block head_extra %}
+<style>
+.pf-wrap { display: grid; gap: 14px; max-width: 640px; }
+
+/* ---------- header card: who you are + quick numbers ---------- */
+.pf-head { display: grid; gap: 18px; }
+.pf-me { display: flex; align-items: center; gap: 16px; }
+.pf-avatar { width: 64px; height: 64px; flex: none; border-radius: 50%; background: var(--acc); color: #fff; display: grid; place-items: center; font-size: 26px; font-weight: 700; }
+.pf-me-text { min-width: 0; display: grid; gap: 2px; }
+.pf-me b { display: block; font-size: 20px; letter-spacing: -.03em; line-height: 1.15; overflow-wrap: anywhere; }
+.pf-me span { display: block; color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+.pf-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.pf-stat { background: var(--bg-2); border: 1px solid var(--line); border-radius: 18px; padding: 12px 10px; text-align: center; min-width: 0; }
+.pf-stat b { display: block; font-size: 20px; font-weight: 700; letter-spacing: -.03em; line-height: 1.1; overflow-wrap: anywhere; }
+.pf-stat span { display: block; margin-top: 4px; font-size: 11.5px; font-weight: 600; color: var(--muted); }
+
+/* ---------- section headings ---------- */
+.pf-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 2px 0; font-size: 14px; font-weight: 700; letter-spacing: .02em; color: var(--muted); }
+.pf-title em { font-style: normal; font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: var(--r-pill); background: var(--card-2); color: var(--ink); }
+
+/* ---------- free services ---------- */
+.pf-links { display: grid; gap: 10px; }
+.pf-links a { display: flex; align-items: center; gap: 14px; min-height: 68px; padding: 12px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 24px; text-decoration: none; transition: border-color var(--d-med), transform var(--d-fast) var(--ease); }
+.pf-links a:hover { border-color: var(--ink); }
+.pf-links a:active { transform: scale(.98); }
+.pf-ic { width: 44px; height: 44px; flex: none; border-radius: 50%; background: var(--acc-soft); display: grid; place-items: center; }
+.pf-links a:nth-child(2) .pf-ic { background: var(--success-soft); }
+.pf-ic svg { width: 22px; height: 22px; stroke: var(--ink); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.pf-links strong { display: block; font-size: 16px; letter-spacing: -.02em; }
+.pf-links small { display: block; color: var(--muted); font-size: 13px; }
+.pf-go { margin-left: auto; width: 34px; height: 34px; flex: none; border-radius: 50%; background: var(--bg-2); display: grid; place-items: center; font-weight: 700; transition: transform var(--d-med) var(--ease), background var(--d-med), color var(--d-med); }
+.pf-links a:hover .pf-go { transform: translateX(4px); background: var(--ink); color: var(--bg); }
+
+/* ---------- account (city + logout) ---------- */
+.pf-account { padding: 6px 18px; display: grid; }
+.pf-row { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 0; }
+.pf-row + .pf-row { border-top: 1px solid var(--line); }
+.pf-row-ic { width: 40px; height: 40px; flex: none; border-radius: 50%; background: var(--acc-soft); display: grid; place-items: center; }
+.pf-row-ic svg { width: 20px; height: 20px; stroke: var(--ink); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.pf-row-text { flex: 1; min-width: 0; }
+.pf-row-text small { display: block; color: var(--muted); font-size: 12px; font-weight: 600; }
+.pf-row-text b { display: block; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+.pf-row .btn { min-height: 40px; padding: 8px 16px; font-size: 13.5px; flex: none; }
+.pf-row form { margin: 0; flex: none; }
+.pf-row.out .pf-row-ic { background: var(--danger-soft); }
+.pf-row.out .pf-row-ic svg { stroke: var(--danger); }
+.pf-row.out .btn { color: var(--danger); box-shadow: inset 0 0 0 1.5px var(--danger); }
+
+/* ---------- my purchases ---------- */
+.pf-buys { display: grid; gap: 14px; }
+.pf-buy { display: block; text-decoration: none; color: inherit; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 16px; transition: border-color var(--d-med), transform var(--d-fast) var(--ease); }
+.pf-buy:hover { border-color: var(--ink); }
+.pf-buy:active { transform: scale(.99); }
+.pf-buy.done { border-color: var(--success); background: var(--success-soft); }
+.pf-buy-top { display: flex; gap: 14px; align-items: center; }
+.pf-buy-img { width: 72px; height: 54px; flex: none; border-radius: 14px; background: var(--bg-2) center/cover no-repeat; }
+.pf-buy-info { min-width: 0; flex: 1; }
+.pf-buy-info b { display: block; font-size: 16px; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.pf-buy-info small { display: block; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.pf-tag { flex: none; font-size: var(--t-xs); font-weight: 700; padding: 4px 12px; border-radius: var(--r-pill); background: var(--warning-soft); color: var(--warning); white-space: nowrap; }
+.pf-buy.done .pf-tag { background: var(--success); color: #07210f; }
+.pf-buy-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+.pf-fact { background: var(--bg-2); border: 1px solid var(--line); border-radius: 16px; padding: 10px 12px; min-width: 0; }
+.pf-fact span { display: block; font-size: var(--t-xs); font-weight: 600; color: var(--muted); }
+.pf-fact b { display: block; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+.pf-item { display: grid; gap: 8px; }
+.pf-rate { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 14px 16px; }
+.pf-rate:empty { display: none; }
+.pf-rate-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.pf-rate-top b { font-size: 15px; letter-spacing: -.02em; }
+.pf-stars { display: inline-flex; gap: 2px; }
+.pf-star { background: none; border: none; padding: 2px; font-size: 28px; line-height: 1; cursor: pointer; color: var(--line-2); min-width: 40px; min-height: 40px; }
+.pf-star.on { color: #f5b301; }
+.pf-static { color: #f5b301; font-size: 18px; letter-spacing: 2px; }
+.pf-rate p { margin-top: 8px; font-size: 14px; color: var(--ink-2); overflow-wrap: anywhere; }
+.pf-rate small { display: block; margin-top: 6px; color: var(--muted); font-size: 12.5px; }
+.pf-rate textarea { width: 100%; min-height: 84px; margin-top: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--field); color: var(--ink); font: inherit; resize: vertical; }
+.pf-consent { display: flex; gap: 10px; align-items: flex-start; margin-top: 10px; font-size: 13.5px; color: var(--ink-2); line-height: 1.4; }
+.pf-consent input { margin-top: 3px; width: 18px; height: 18px; flex: none; }
+.pf-rate-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.pf-link { background: none; border: none; color: var(--acc-text); font-weight: 700; font-size: 14px; cursor: pointer; padding: 8px 0; min-height: 40px; }
+.pf-save { margin-top: 12px; font-size: 13px; font-weight: 700; color: var(--success); }
+.pf-steps { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 14px; }
+.pf-steps li { font-size: 11.5px; font-weight: 600; color: var(--muted); text-align: center; }
+.pf-steps li::before { content: ""; display: block; height: 6px; border-radius: 6px; background: var(--track); margin-bottom: 6px; }
+.pf-steps li.on { color: var(--ink); }
+.pf-steps li.on::before { background: var(--success); }
+.pf-empty { background: var(--card); border: 2px dashed var(--line-2); border-radius: 24px; padding: 28px 20px; text-align: center; color: var(--muted); font-size: 14px; }
+.pf-empty a { color: var(--acc-text); font-weight: 700; }
+
+@media (max-width: 380px) {
+    .pf-me { gap: 12px; }
+    .pf-avatar { width: 56px; height: 56px; font-size: 22px; }
+    .pf-stat b { font-size: 17px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{# quick numbers for the header card #}
+{% set ns = namespace(saved=0, done=0) %}
+{% for p in purchases %}
+    {% if p.saving %}{% set ns.saved = ns.saved + p.saving %}{% endif %}
+    {% if p.delivered %}{% set ns.done = ns.done + 1 %}{% endif %}
+{% endfor %}
+
+<div class="pf-wrap">
+
+    <!-- ===== who you are ===== -->
+    <section class="page-card pf-head">
+        <div class="pf-me">
+            <div class="pf-avatar" aria-hidden="true">{{ (customer.full_name or 'C')[0]|upper }}</div>
+            <div class="pf-me-text">
+                <b>{{ customer.full_name }}</b>
+                <span>{{ customer.email }}</span>
+                <span>{{ customer.phone or 'Phone not provided' }}</span>
+            </div>
+        </div>
+        <div class="pf-stats">
+            <div class="pf-stat"><b>{{ purchases|length }}</b><span>Purchases</span></div>
+            <div class="pf-stat"><b>{{ ns.done }}</b><span>Delivered</span></div>
+            <div class="pf-stat"><b>₹{{ ns.saved|inr }}</b><span>Saved</span></div>
+        </div>
+    </section>
+
+    <!-- ===== my purchases ===== -->
+    <h2 class="pf-title">My purchases {% if purchases %}<em>{{ purchases|length }}</em>{% endif %}</h2>
+
+    {% if purchases %}
+    <div class="pf-buys">
+        {% for p in purchases %}
+        <div class="pf-item">
+        <a class="pf-buy{% if p.delivered %} done{% endif %}" href="{{ url_for('customer_group_offers_page', group_id=p.group_id) }}">
+            <div class="pf-buy-top">
+                <div class="pf-buy-img"{% if p.car.image_url %} style="background-image:url('{{ p.car.image_url }}')"{% endif %}></div>
+                <div class="pf-buy-info">
+                    <b>{{ p.car.brand }} {{ p.car.model }}</b>
+                    <small>{{ p.car.variant or '' }}{% if p.car.variant %} · {% endif %}{{ p.group_name }}</small>
+                </div>
+                <span class="pf-tag">{% if p.delivered %}Delivered{% else %}{{ p.deal_status }}{% endif %}</span>
+            </div>
+
+            <div class="pf-buy-facts">
+                <div class="pf-fact"><span>Deal price</span><b>{% if p.price %}₹{{ p.price|inr }}{% else %}Pending{% endif %}</b></div>
+                <div class="pf-fact">
+                    <span>{% if p.delivered %}Delivered on{% else %}Expected delivery{% endif %}</span>
+                    <b>
+                        {% if p.delivered %}
+                            {{ (p.updated_at or p.completed_at or '')[:10] or 'Done' }}
+                        {% elif p.delivery_days %}
+                            Within {{ p.delivery_days }} days
+                        {% else %}
+                            Not specified
+                        {% endif %}
+                    </b>
+                </div>
+            </div>
+
+            {% if p.saving %}
+            <p class="pf-save">You saved ₹{{ p.saving|inr }} vs showroom price</p>
+            {% endif %}
+
+            <ol class="pf-steps" aria-label="Deal progress">
+                {% for s in deal_steps %}
+                <li{% if loop.index0 <= p.step %} class="on"{% endif %}>{{ s }}</li>
+                {% endfor %}
+            </ol>
+        </a>
+
+        {% if p.delivered %}
+        <div class="pf-rate" data-group="{{ p.group_id }}"
+             data-stars="{{ p.review.stars if p.review else 0 }}"
+             data-comment="{{ (p.review.comment or '') if p.review else '' }}"
+             data-consent="{{ '1' if p.review and p.review.public_consent else '0' }}"
+             data-status="{{ p.review.status if p.review else '' }}"></div>
+        {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="pf-empty">
+        No purchases yet. Once your group's deal is finalized, it will show up here.<br>
+        <a href="{{ url_for('customer_my_groups_page') }}">View my groups →</a>
+    </div>
+    {% endif %}
+
+    <!-- ===== free services ===== -->
+    <h2 class="pf-title">Free services</h2>
+
+    <nav class="pf-links" aria-label="Free services">
+        <a href="{{ url_for('customer_sell_car_page') }}">
+            <span class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16V11l2-5h10l2 5v5"/><path d="M3 16h18v3H3z"/><circle cx="7.5" cy="16" r=".6"/><circle cx="16.5" cy="16" r=".6"/></svg></span>
+            <span><strong>Sell your old vehicle</strong><small>Get a free quote from partner dealers.</small></span>
+            <span class="pf-go" aria-hidden="true">→</span>
+        </a>
+        <a href="{{ url_for('customer_insurance_page') }}">
+            <span class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
+            <span><strong>Vehicle insurance</strong><small>New vehicle or renewal. Get the best quote.</small></span>
+            <span class="pf-go" aria-hidden="true">→</span>
+        </a>
+    </nav>
+
+    <!-- ===== account: city + logout ===== -->
+    <h2 class="pf-title">Account</h2>
+
+    <section class="page-card pf-account">
+        <div class="pf-row">
+            <span class="pf-row-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span>
+            <div class="pf-row-text"><small>Your city</small><b>{{ customer.city or 'Not selected' }}</b></div>
+            <button type="button" class="btn btn-ghost" onclick="openCitySheet()">{{ 'Change' if customer.city else 'Select' }}</button>
+        </div>
+        <div class="pf-row out">
+            <span class="pf-row-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3"/><path d="M16 8l4 4-4 4"/><path d="M20 12H9"/></svg></span>
+            <div class="pf-row-text"><small>Signed in as</small><b>{{ customer.email or customer.full_name }}</b></div>
+            <form action="/logout" method="POST">
+                <button type="submit" class="btn btn-ghost">Logout</button>
+            </form>
+        </div>
+    </section>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* Rating on delivered purchases. Runs after base.html (showMessage, escapeHTML are ready). */
+(function () {
+    const STATUS_TEXT = {
+        pending: "Thank you! It will appear on our website after our team approves it.",
+        approved: "Shown on our website. Thank you!",
+        private: "Only our team can see this review.",
+        hidden: "Only our team can see this review."
+    };
+
+    function stars(n) { return "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n); }
+
+    function showSummary(box) {
+        const n = Number(box.dataset.stars) || 0;
+        if (!n) return showForm(box);
+        const c = box.dataset.comment;
+        box.innerHTML =
+            '<div class="pf-rate-top"><b>Your review</b><span class="pf-static" aria-label="' + n + ' out of 5 stars">' + stars(n) + '</span></div>' +
+            (c ? "<p>" + escapeHTML(c) + "</p>" : "") +
+            "<small>" + escapeHTML(STATUS_TEXT[box.dataset.status] || "") + "</small>" +
+            '<button type="button" class="pf-link" data-edit>Edit review</button>';
+    }
+
+    function showForm(box) {
+        let n = Number(box.dataset.stars) || 0;
+        box.innerHTML =
+            '<div class="pf-rate-top"><b>How was your experience?</b><span class="pf-stars" role="radiogroup" aria-label="Rating">' +
+            [1, 2, 3, 4, 5].map(i => '<button type="button" class="pf-star" data-s="' + i + '" role="radio" aria-label="' + i + ' star' + (i > 1 ? "s" : "") + '">★</button>').join("") + "</span></div>" +
+            '<textarea maxlength="600" placeholder="Tell us about the price, delivery and the dealer (optional)">' + escapeHTML(box.dataset.comment || "") + "</textarea>" +
+            '<label class="pf-consent"><input type="checkbox"' + (box.dataset.consent === "1" ? " checked" : "") + '><span>You may show my review, first name and the car I bought on the CarTogether website. My phone number and email are never shown.</span></label>' +
+            '<div class="pf-rate-actions"><button type="button" class="btn btn-primary" data-save>Submit review</button>' +
+            (Number(box.dataset.stars) ? '<button type="button" class="btn btn-ghost" data-cancel>Cancel</button>' : "") + "</div>";
+
+        const paint = () => box.querySelectorAll(".pf-star").forEach(b => {
+            const on = Number(b.dataset.s) <= n;
+            b.classList.toggle("on", on);
+            b.setAttribute("aria-checked", String(Number(b.dataset.s) === n));
+        });
+        paint();
+        box._pick = v => { n = v; paint(); };
+        box._value = () => n;
+    }
+
+    async function save(box, btn) {
+        const n = box._value ? box._value() : 0;
+        if (!n) { showMessage("Please choose 1 to 5 stars.", "danger"); return; }
+        const comment = box.querySelector("textarea").value.trim();
+        const consent = box.querySelector('input[type="checkbox"]').checked;
+        btn.disabled = true;
+        try {
+            const res = await fetch("/api/customer/groups/" + box.dataset.group + "/review", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ stars: n, comment: comment, public_consent: consent })
+            });
+            let data = {};
+            try { data = await res.json(); } catch (_) { /* not json */ }
+            if (res.ok && data.success) {
+                box.dataset.stars = n; box.dataset.comment = comment;
+                box.dataset.consent = consent ? "1" : "0"; box.dataset.status = data.status || "";
+                showMessage(data.message || "Thank you!", "success");
+                showSummary(box);
+            } else {
+                showMessage(data.message || "Could not save your review.", "danger");
+                btn.disabled = false;
+            }
+        } catch (err) {
+            showMessage(friendlyError(err), "danger");
+            btn.disabled = false;
+        }
+    }
+
+    document.querySelectorAll(".pf-rate").forEach(box => {
+        showSummary(box);
+        box.addEventListener("click", e => {
+            const star = e.target.closest(".pf-star");
+            if (star && box._pick) return box._pick(Number(star.dataset.s));
+            if (e.target.closest("[data-edit]")) return showForm(box);
+            if (e.target.closest("[data-cancel]")) return showSummary(box);
+            const sv = e.target.closest("[data-save]");
+            if (sv) save(box, sv);
+        });
+    });
+})();
+</script>
+{% endblock %}

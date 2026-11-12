@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add Dealer - CarTogether Admin</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f1f5f9;
+    color: #0f172a;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+  .card {
+    background: #fff;
+    width: 100%;
+    max-width: 560px;
+    border-radius: 14px;
+    padding: 28px;
+    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+  }
+  h1 { margin: 0 0 4px; font-size: 24px; }
+  .sub { margin: 0 0 22px; color: #64748b; font-size: 14px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .full { grid-column: 1 / -1; }
+  label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  input, textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  input:focus, textarea:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+  textarea { resize: vertical; min-height: 70px; }
+  .pw-row { display: flex; gap: 8px; }
+  .pw-row input { flex: 1; }
+  .btn-small {
+    padding: 0 12px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .btn-small:hover { background: #e2e8f0; }
+  .actions { display: flex; gap: 10px; margin-top: 20px; }
+  .btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-primary { background: #2563eb; color: #fff; }
+  .btn-primary:hover { background: #1d4ed8; }
+  .btn-primary:disabled { background: #93c5fd; cursor: not-allowed; }
+  .btn-secondary {
+    background: #e2e8f0;
+    color: #0f172a;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+  }
+  .msg {
+    margin-top: 16px;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    display: none;
+  }
+  .msg.ok { display: block; background: #dcfce7; color: #166534; }
+  .msg.err { display: block; background: #fee2e2; color: #991b1b; }
+  .creds { margin-top: 8px; font-family: monospace; font-size: 13px; background: #fff; padding: 8px; border-radius: 6px; color: #0f172a; }
+  @media (max-width: 520px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Add Dealer</h1>
+    <p class="sub">Create a dealer account. Share the email and password with the dealer so they can log in.</p>
+
+    <form id="dealerForm" autocomplete="off">
+      <div class="grid">
+        <div class="full">
+          <label for="business_name">Business name *</label>
+          <input id="business_name" type="text" required>
+        </div>
+
+        <div>
+          <label for="contact_person">Contact person *</label>
+          <input id="contact_person" type="text" required>
+        </div>
+
+        <div>
+          <label for="phone">Phone (10 digits) *</label>
+          <input id="phone" type="tel" maxlength="10" inputmode="numeric" required>
+        </div>
+
+        <div>
+          <label for="city">City *</label>
+          <input id="city" type="text" required>
+        </div>
+
+        <div>
+          <label for="email">Dealer email *</label>
+          <input id="email" type="email" required>
+        </div>
+
+        <div class="full">
+          <label for="address">Address</label>
+          <textarea id="address"></textarea>
+        </div>
+
+        <div class="full">
+          <label for="password">Dealer password * (min 8 characters)</label>
+          <div class="pw-row">
+            <input id="password" type="text" minlength="8" required autocomplete="new-password">
+            <button type="button" class="btn-small" id="genBtn">Generate</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a class="btn btn-secondary" href="{{ url_for('admin_dashboard') }}">Back</a>
+        <button type="submit" class="btn btn-primary" id="submitBtn">Create Dealer</button>
+      </div>
+
+      <div id="msg" class="msg"></div>
+    </form>
+  </div>
+
+<script>
+  const form = document.getElementById("dealerForm");
+  const msg = document.getElementById("msg");
+  const submitBtn = document.getElementById("submitBtn");
+
+  function showMessage(text, ok, extra) {
+    msg.className = "msg " + (ok ? "ok" : "err");
+    msg.textContent = text;
+    if (extra) {
+      const box = document.createElement("div");
+      box.className = "creds";
+      box.textContent = extra;
+      msg.appendChild(box);
+    }
+  }
+
+  document.getElementById("genBtn").addEventListener("click", () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+    const bytes = new Uint32Array(12);
+    crypto.getRandomValues(bytes);
+    let pw = "";
+    bytes.forEach(b => { pw += chars[b % chars.length]; });
+    document.getElementById("password").value = pw;
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const payload = {
+      business_name: document.getElementById("business_name").value.trim(),
+      contact_person: document.getElementById("contact_person").value.trim(),
+      phone: document.getElementById("phone").value.trim(),
+      city: document.getElementById("city").value.trim(),
+      email: document.getElementById("email").value.trim(),
+      address: document.getElementById("address").value.trim(),
+      password: document.getElementById("password").value
+    };
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Creating...";
+
+    try {
+      const response = await fetch("/api/admin/dealers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        showMessage(
+          result.message,
+          true,
+          "Email: " + payload.email + "\nPassword: " + payload.password
+        );
+        form.reset();
+      } else {
+        showMessage(result.message || "Unable to create dealer.", false);
+      }
+    } catch (err) {
+      showMessage("Network error. Please try again.", false);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Create Dealer";
+    }
+  });
+</script>
+</body>
+</html>

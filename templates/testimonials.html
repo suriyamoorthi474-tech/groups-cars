@@ -1,0 +1,49 @@
+{# Landing page testimonials.
+   Put this file in templates/ and add ONE line in index.html where you want it:
+       {% include "testimonials_section.html" %}
+   Shows only approved reviews from real customers. If there are none, nothing is rendered. #}
+{% if testimonials %}
+<section class="tm" id="testimonials" aria-labelledby="tmTitle">
+<style>
+.tm { padding: 64px 20px; }
+.tm-in { max-width: 1120px; margin: 0 auto; }
+.tm-head { text-align: center; margin-bottom: 32px; }
+.tm-head h2 { font-size: clamp(26px, 4vw, 38px); font-weight: 800; letter-spacing: -.035em; margin: 0 0 8px; }
+.tm-sum { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; opacity: .85; }
+.tm-sum .st { color: #f5b301; letter-spacing: 2px; font-size: 18px; }
+.tm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+.tm-card { display: flex; flex-direction: column; gap: 12px; padding: 22px; border-radius: 22px; background: var(--card, #fff); color: var(--ink, #111827); border: 1px solid var(--line, rgba(128,128,128,.25)); box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+.tm-stars { color: #f5b301; letter-spacing: 3px; font-size: 18px; }
+.tm-card p { margin: 0; font-size: 15px; line-height: 1.6; overflow-wrap: anywhere; flex: 1; }
+.tm-save { align-self: flex-start; font-size: 13px; font-weight: 800; padding: 5px 12px; border-radius: 999px; background: rgba(18,160,92,.14); color: #0e8a4f; }
+.tm-who { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+.tm-av { width: 40px; height: 40px; flex: none; border-radius: 50%; display: grid; place-items: center; font-weight: 800; background: rgba(128,128,128,.18); }
+.tm-who b { display: block; }
+.tm-who span { opacity: .7; font-size: 13px; }
+.tm-note { text-align: center; margin-top: 18px; font-size: 12.5px; opacity: .65; }
+</style>
+<div class="tm-in">
+    <div class="tm-head">
+        <h2 id="tmTitle">What our buyers say</h2>
+        {% if review_summary %}
+        <div class="tm-sum"><span class="st" aria-hidden="true">★★★★★</span>
+            <span>{{ review_summary.average }} out of 5 from {{ review_summary.count }} reviews</span></div>
+        {% endif %}
+    </div>
+    <div class="tm-grid">
+        {% for t in testimonials %}
+        <figure class="tm-card" style="margin:0">
+            <div class="tm-stars" role="img" aria-label="{{ t.stars }} out of 5 stars">{{ '★' * t.stars }}{{ '☆' * (5 - t.stars) }}</div>
+            {% if t.comment %}<p>&ldquo;{{ t.comment }}&rdquo;</p>{% else %}<p>Bought {{ t.car or 'a vehicle' }} through a CarTogether group.</p>{% endif %}
+            {% if t.saving %}<div class="tm-save">Saved ₹{{ t.saving|inr }} vs showroom price</div>{% endif %}
+            <figcaption class="tm-who">
+                <div class="tm-av" aria-hidden="true">{{ t.name[0]|upper }}</div>
+                <div><b>{{ t.name }}</b><span>{% if t.car %}{{ t.car }}{% endif %}{% if t.car and t.group_size %} · {% endif %}{% if t.group_size %}Group of {{ t.group_size }}{% endif %}</span></div>
+            </figcaption>
+        </figure>
+        {% endfor %}
+    </div>
+    <p class="tm-note">Reviews are written by real customers who received their vehicle, shown with their permission.</p>
+</div>
+</section>
+{% endif %}

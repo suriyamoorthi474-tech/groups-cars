@@ -1,0 +1,289 @@
+{% extends "customer/base.html" %}
+{% block title %}Sell your car{% endblock %}
+{% block eyebrow %}Free service{% endblock %}
+{% block heading %}Sell your old car{% endblock %}
+
+{% block head_extra %}
+<style>
+.fm-wrap { max-width: 640px; }
+.fm { display: grid; gap: 24px; margin-bottom: 30px; }
+.fm h3 { font-size: 15px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 12px; }
+.fm-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.fm-field { display: grid; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.fm textarea.input { min-height: 88px; resize: vertical; font-weight: 500; }
+.fm-label { display: block; margin: 16px 0 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.fm-label:first-child { margin-top: 0; }
+
+.opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.opt { position: relative; }
+.opt input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.opt span { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px; border: 1.5px solid var(--line-2); border-radius: var(--r-pill); font-size: 13.5px; font-weight: 600; color: var(--ink-2); background: var(--card); transition: background var(--d-med), border-color var(--d-med), color var(--d-med); }
+.opt input:checked + span { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.opt input:focus-visible + span { outline: 3px solid var(--acc-text); outline-offset: 2px; }
+
+.fm-link { background: var(--bg-2); border: 1px solid var(--line); border-radius: 20px; padding: 14px; }
+.fm-link p { font-size: 13.5px; color: var(--muted); margin-bottom: 10px; }
+.fm-link p:last-child { margin-bottom: 0; }
+.fm-consent { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; color: var(--ink-2); cursor: pointer; }
+.fm-consent input { width: 20px; height: 20px; margin-top: 1px; flex: none; accent-color: var(--acc); }
+.fm-note { text-align: center; color: var(--muted); font-size: 12.5px; margin-top: -10px; }
+
+.req-list { display: grid; gap: 12px; }
+.req-card { display: grid; gap: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 16px; }
+.req-card h3 { font-size: 18px; font-weight: 700; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.req-sub { color: var(--muted); font-size: 13.5px; }
+.req-quote { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--success-soft); color: var(--success); border-radius: 16px; padding: 12px 16px; font-size: 13px; font-weight: 600; }
+.req-quote b { font-size: 24px; font-weight: 700; letter-spacing: -.04em; }
+
+@media (min-width: 601px) { .fm-grid { grid-template-columns: 1fr 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="fm-wrap">
+
+    <a class="back-link" href="{{ url_for('customer_profile_page') }}">← My profile</a>
+    <p class="page-intro">Car details kudunga. Partner dealers-kitta irundhu 24 hours-kulle quote vaangi tharom. Mudivu unga kaiyila.</p>
+
+    <form id="usedCarForm" class="page-card fm" novalidate>
+
+        <section>
+            <h3>Unga car</h3>
+            <div class="fm-grid">
+                <label class="fm-field">Brand *
+                    <input class="input" type="text" name="brand" maxlength="60" placeholder="Maruti, Hyundai..." required>
+                </label>
+                <label class="fm-field">Model *
+                    <input class="input" type="text" name="model" maxlength="60" placeholder="Swift, i20..." required>
+                </label>
+                <label class="fm-field">Variant
+                    <input class="input" type="text" name="variant" maxlength="60" placeholder="VXI, Sportz...">
+                </label>
+                <label class="fm-field">Year *
+                    <input class="input" type="number" name="year" min="1990" placeholder="2018" required>
+                </label>
+                <label class="fm-field">Km driven *
+                    <input class="input" type="number" name="km_driven" min="0" max="1000000" placeholder="45000" required>
+                </label>
+                <label class="fm-field">Expected price (₹)
+                    <input class="input" type="number" name="expected_price" min="10000" placeholder="Optional">
+                </label>
+            </div>
+        </section>
+
+        <section>
+            <h3>Car nilaimai</h3>
+
+            <span class="fm-label">Fuel *</span>
+            <div class="opts">
+                {% for v in ['Petrol', 'Diesel', 'CNG', 'Electric', 'Hybrid'] %}
+                <label class="opt"><input type="radio" name="fuel_type" value="{{ v }}"><span>{{ v }}</span></label>
+                {% endfor %}
+            </div>
+
+            <span class="fm-label">Transmission *</span>
+            <div class="opts">
+                {% for v in ['Manual', 'Automatic'] %}
+                <label class="opt"><input type="radio" name="transmission" value="{{ v }}"><span>{{ v }}</span></label>
+                {% endfor %}
+            </div>
+
+            <span class="fm-label">Owners *</span>
+            <div class="opts">
+                <label class="opt"><input type="radio" name="owners" value="1" checked><span>1st owner</span></label>
+                <label class="opt"><input type="radio" name="owners" value="2"><span>2nd owner</span></label>
+                <label class="opt"><input type="radio" name="owners" value="3"><span>3rd owner</span></label>
+                <label class="opt"><input type="radio" name="owners" value="4"><span>4 or more</span></label>
+            </div>
+
+            <span class="fm-label">Condition *</span>
+            <div class="opts">
+                {% for v in ['Excellent', 'Good', 'Average', 'Needs work'] %}
+                <label class="opt"><input type="radio" name="condition" value="{{ v }}"><span>{{ v }}</span></label>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section>
+            <h3>Pudhu car <span style="color:var(--muted);font-weight:500">(optional)</span></h3>
+            <div id="fmGroup" class="fm-link"><p>Loading your groups...</p></div>
+        </section>
+
+        <section>
+            <h3>Contact</h3>
+            <div class="fm-grid">
+                <label class="fm-field">Phone *
+                    <input class="input" type="tel" name="phone" value="{{ customer.phone or '' }}" placeholder="10 digit number" required>
+                </label>
+                <label class="fm-field">City *
+                    <input class="input" type="text" name="city" maxlength="80" placeholder="Chennai" required>
+                </label>
+            </div>
+            <label class="fm-field" style="margin-top:12px">Note
+                <textarea class="input" name="note" maxlength="500" placeholder="Accident history, insurance, any other details..."></textarea>
+            </label>
+        </section>
+
+        <label class="fm-consent">
+            <input type="checkbox" name="consent">
+            <span>En car details-ai partner used car dealers-kitta share panna sammadham.</span>
+        </label>
+
+        <button type="submit" id="usedCarBtn" class="btn btn-primary">Get my quote</button>
+        <p class="fm-note">100% free. Quote pidikkalana edhuvum pannanum-nu avasiyam illa.</p>
+    </form>
+
+    <h2 class="section-title">My quote requests</h2>
+    <div id="usedCarList" class="req-list" aria-live="polite">
+        <div class="skel" style="height:120px;border-radius:24px"></div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* Uses helpers from base.html: byId, escapeHTML, money, showMessage, badgeHTML, trackerHTML, openSheet, closeSheet. */
+(function () {
+    const form = byId("usedCarForm");
+    const btn = byId("usedCarBtn");
+    const list = byId("usedCarList");
+    const groupBox = byId("fmGroup");
+    const wantedGroup = new URLSearchParams(location.search).get("group") || "";
+    const STEPS = [["New", "Request sent", "Sent"], ["Contacted", "Expert contacted", "Contacted"], ["Quoted", "Quote ready", "Quote"], ["Sold", "Sold", "Sold"]];
+
+    form.elements["year"].max = new Date().getFullYear();
+
+    function radio(name) {
+        const c = form.querySelector('input[name="' + name + '"]:checked');
+        return c ? c.value : "";
+    }
+
+    async function loadGroups() {
+        try {
+            const res = await fetch("/api/customer/groups");
+            const data = await res.json();
+            const mine = (data.groups || []).filter(g => g.is_joined);
+
+            if (!mine.length) {
+                groupBox.innerHTML = "<p>Group join pannina, pudhu car-oda inge link pannalaam. Illaama-um request anuppalaam.</p>";
+                return;
+            }
+            groupBox.innerHTML =
+                "<p>Pudhu car vaanga group-la irukeengala? Select pannunga. Dealer-ku adhu theriyum.</p>" +
+                '<label class="fm-field">Unga group<select class="select" name="group_id"><option value="">Illa, pazhaya car mattum</option>' +
+                mine.map(g => {
+                    const car = g.car ? [g.car.brand, g.car.model, g.car.variant].filter(Boolean).join(" ") : "";
+                    const sel = String(g.id) === String(wantedGroup) ? " selected" : "";
+                    return '<option value="' + escapeHTML(g.id) + '"' + sel + ">" + escapeHTML(g.group_name) + (car ? " · " + escapeHTML(car) : "") + "</option>";
+                }).join("") + "</select></label>";
+        } catch (err) {
+            groupBox.innerHTML = "<p>Groups load aagala. Group illamaleye request anuppalaam.</p>";
+        }
+    }
+
+    async function loadLeads() {
+        try {
+            const res = await fetch("/api/customer/used-car-leads");
+            const data = await res.json();
+
+            if (!data.success) {
+                list.innerHTML = '<div class="empty-state is-error"><h3>Couldn\'t load requests</h3><p>' + escapeHTML(data.message) + "</p></div>";
+                return;
+            }
+            if (!data.leads.length) {
+                list.innerHTML = '<div class="empty-state"><h3>No requests yet</h3><p>Mela irukkura form-ai fill pannunga.</p></div>';
+                return;
+            }
+
+            list.innerHTML = data.leads.map(lead => {
+                const name = [lead.brand, lead.model, lead.variant].filter(Boolean).join(" ");
+                const idx = STEPS.findIndex(s => s[0] === lead.status);
+                const open = ["New", "Contacted", "Quoted"].indexOf(lead.status) !== -1;
+                const tone = lead.status === "Sold" ? "success" : (idx > -1 ? "info" : "danger");
+                return `<article class="req-card">
+                    <div>
+                        <h3>${escapeHTML(name)}</h3>
+                        <p class="req-sub">${escapeHTML(lead.year)} · ${Number(lead.km_driven).toLocaleString("en-IN")} km${lead.expected_price ? " · expected " + money(lead.expected_price) : ""}</p>
+                    </div>
+                    <div class="chips">${badgeHTML(tone, lead.status)}${lead.group_name ? `<span class="status">${escapeHTML(lead.group_name)}</span>` : ""}</div>
+                    ${lead.quote_amount ? `<div class="req-quote"><span>Your quote</span><b>${money(lead.quote_amount)}</b></div>` : ""}
+                    ${idx > -1 ? trackerHTML(STEPS, idx) : ""}
+                    ${open ? `<button type="button" class="btn btn-ghost" data-cancel="${escapeHTML(lead.id)}">Cancel request</button>` : ""}
+                </article>`;
+            }).join("");
+        } catch (err) {
+            list.innerHTML = '<div class="empty-state is-error"><h3>Couldn\'t load requests</h3><p>' + escapeHTML(friendlyError(err)) + "</p></div>";
+        }
+    }
+
+    list.addEventListener("click", function (e) {
+        const b = e.target.closest("[data-cancel]");
+        if (!b) return;
+        const id = b.dataset.cancel;
+        openSheet(`
+            <h3 id="sheetTitle" class="sheet-title">Cancel this request?</h3>
+            <p class="sheet-sub">Partner dealers-ku adhu poga maatadhu.</p>
+            <div class="sheet-actions">
+                <button type="button" class="btn btn-danger" id="cancelYes">Yes, cancel</button>
+                <button type="button" class="btn btn-ghost" data-close>Keep it</button>
+            </div>`);
+        byId("cancelYes").onclick = async function () {
+            this.disabled = true;
+            try {
+                const res = await fetch("/api/customer/used-car-leads/" + id + "/cancel", { method: "POST" });
+                const data = await res.json();
+                showMessage(data.message, data.success ? "success" : "danger");
+            } catch (err) {
+                showMessage("Unable to cancel. Please try again.", "danger");
+            }
+            closeSheet();
+            loadLeads();
+        };
+    });
+
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        if (btn.disabled) return;
+        const f = form.elements;
+        const groupField = form.querySelector('select[name="group_id"]');
+        const payload = {
+            brand: f["brand"].value, model: f["model"].value, variant: f["variant"].value,
+            year: f["year"].value, km_driven: f["km_driven"].value,
+            owners: radio("owners"), fuel_type: radio("fuel_type"),
+            transmission: radio("transmission"), condition: radio("condition"),
+            expected_price: f["expected_price"].value,
+            city: f["city"].value, phone: f["phone"].value, note: f["note"].value,
+            group_id: groupField ? groupField.value : "",
+            consent: f["consent"].checked
+        };
+
+        btn.disabled = true;
+        btn.classList.add("is-loading");
+        try {
+            const res = await fetch("/api/customer/used-car-leads", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            showMessage(data.message, data.success ? "success" : "danger");
+            if (data.success) {
+                const keepPhone = payload.phone, keepGroup = payload.group_id;
+                form.reset();
+                f["phone"].value = keepPhone;
+                if (groupField) groupField.value = keepGroup;
+                loadLeads();
+            }
+        } catch (err) {
+            showMessage(friendlyError(err), "danger");
+        }
+        btn.disabled = false;
+        btn.classList.remove("is-loading");
+    });
+
+    loadGroups();
+    loadLeads();
+})();
+</script>
+{% endblock %}

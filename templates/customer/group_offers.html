@@ -1,0 +1,445 @@
+{% extends "customer/base.html" %}
+{% block title %}Offers{% endblock %}
+{% block heading %}Group Offers{% endblock %}
+
+{% block head_extra %}
+<style>
+/* =====================================================================
+   Group Offers: built only on base.html tokens (dark + light both work).
+   No hard-coded light colours, no font-family (Outfit comes from base).
+   ===================================================================== */
+
+/* ---------- layout ---------- */
+.og { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: var(--s-4); align-items: start; }
+.og-side { position: sticky; top: 20px; display: grid; gap: var(--s-4); min-width: 0; }
+.og-main { min-width: 0; }
+
+/* ---------- summary panel (stays dark in both themes, like .welcome) ---------- */
+.og-sum { position: relative; overflow: hidden; background: var(--panel); color: var(--on-panel); border-radius: var(--r-xl); padding: 28px 24px; }
+.og-sum::before { content: ""; position: absolute; right: -60px; bottom: -80px; width: 200px; height: 200px; border-radius: 50%; background: var(--acc); opacity: .9; pointer-events: none; }
+.og-sum::after { content: ""; position: absolute; right: 24px; top: 24px; width: 48px; height: 48px; border-radius: 50%; background: var(--lime); pointer-events: none; }
+.og-sum > * { position: relative; z-index: 1; }
+.og-eyebrow { display: inline-flex; align-items: center; min-height: 28px; font-size: var(--t-xs); font-weight: 700; color: #101114; background: var(--lime); padding: 4px 13px; border-radius: var(--r-pill); margin-bottom: 16px; }
+.og-sum h2 { font-size: 30px; font-weight: 700; letter-spacing: -.045em; line-height: 1.05; margin-bottom: 10px; max-width: 250px; overflow-wrap: anywhere; }
+.og-sum .sub { color: #c3c5cf; font-size: 14px; line-height: 1.55; }
+
+.og-showroom { margin-top: 14px; font-size: 13px; color: #c3c5cf; font-weight: 600; }
+.og-showroom[hidden] { display: none; }
+.og-showroom b { display: block; color: #fff; font-size: 22px; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+
+.og-seatwrap { margin-top: 20px; }
+.og-seatwrap[hidden] { display: none; }
+.og-stage { padding: 18px 0 14px; border-color: rgba(255,255,255,.12); }
+.og-seatcount { margin-top: 10px; font-size: 13px; color: #c3c5cf; font-weight: 500; text-align: center; }
+.og-seatcount b { color: #fff; font-weight: 700; }
+.og-progress { display: flex; align-items: center; gap: 16px; margin-top: 22px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.16); }
+.og-progress[hidden] { display: none; }
+.og-ring { position: relative; width: 84px; height: 84px; flex: none; }
+.og-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.og-ring circle { fill: none; stroke-width: 8; }
+.og-ring .tr { stroke: rgba(255,255,255,.2); }
+.og-ring .fg { stroke: var(--lime); stroke-linecap: round; transition: stroke-dasharray .8s var(--ease); }
+.og-ring b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; letter-spacing: -.03em; }
+.og-progress p { min-width: 0; font-size: 13px; color: #c3c5cf; line-height: 1.45; }
+.og-progress p strong { display: block; color: #fff; font-size: 17px; font-weight: 700; }
+
+.og-flow { list-style: none; margin-top: 22px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.16); display: grid; gap: 14px; }
+.og-flow li { position: relative; display: flex; align-items: center; gap: 12px; min-height: 22px; font-size: 14px; font-weight: 600; color: #9a9dab; }
+.og-flow li::before { content: ""; width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(255,255,255,.3); flex: none; display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1; }
+.og-flow li:not(:last-child)::after { content: ""; position: absolute; left: 10px; top: 22px; width: 2px; height: 14px; background: rgba(255,255,255,.18); }
+.og-flow li.done { color: #d5d7e0; }
+.og-flow li.done::before { content: "✓"; background: var(--lime); border-color: var(--lime); color: #101114; font-weight: 800; }
+.og-flow li.active { color: #fff; }
+.og-flow li.active::before { border-color: var(--lime); box-shadow: 0 0 0 5px rgba(215,255,63,.22); }
+
+/* ---------- notices ---------- */
+.og-list { display: grid; gap: 14px; min-width: 0; }
+.og-win { display: flex; gap: 14px; align-items: center; background: var(--success-soft); border: 2px solid var(--success); border-radius: 26px; padding: 18px 20px; }
+.og-win .ic { width: 46px; height: 46px; border-radius: 50%; background: var(--success); display: grid; place-items: center; flex: none; }
+.og-win .ic svg { width: 24px; height: 24px; stroke: var(--bg); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.og-win > div:last-child { min-width: 0; }
+.og-win b { display: block; font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
+.og-win span { color: var(--ink-2); font-size: 14px; }
+
+/* ---------- offer card ---------- */
+.og-offer { position: relative; background: var(--card); border: 2px solid var(--line); border-radius: var(--r-xl); padding: 24px; box-shadow: var(--shadow); transition: border-color var(--d-med), transform var(--d-slow) var(--ease), background var(--d-med), box-shadow var(--d-med); }
+.og-offer:not(.locked) { cursor: pointer; }
+@media (hover: hover) { .og-offer:not(.locked):hover { transform: translateY(-3px); border-color: var(--line-2); } }
+.og-offer.picked { border-color: var(--acc-text); background: var(--acc-soft); box-shadow: 0 0 0 4px var(--acc-soft); }
+.og-offer.mine { border-color: var(--success); background: var(--success-soft); }
+.og-offer.accepted { background: var(--panel); border-color: var(--panel); color: var(--on-panel); }
+
+.og-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; padding-right: 44px; }
+.og-badges:empty { display: none; }
+.og-b { display: inline-flex; align-items: center; min-height: 28px; font-size: var(--t-xs); font-weight: 700; padding: 4px 12px; border-radius: var(--r-pill); background: var(--card-2); color: var(--ink-2); white-space: nowrap; }
+.og-b.price { background: var(--lime); color: #101114; }
+.og-b.fast { background: var(--info-soft); color: var(--info); }
+.og-b.votes { background: var(--warning-soft); color: var(--warning); }
+.og-b.mine { background: var(--success); color: #07210f; }
+.og-b.win { background: var(--lime); color: #101114; }
+
+.og-radio { position: absolute; top: 22px; right: 22px; width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line-2); display: grid; place-items: center; background: var(--field); transition: all var(--d-fast); }
+.og-radio svg { width: 15px; height: 15px; stroke: #fff; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.og-offer.picked .og-radio { background: var(--acc-fill); border-color: var(--acc-fill); }
+.og-offer.mine .og-radio { background: var(--success); border-color: var(--success); }
+.og-offer.mine .og-radio svg { stroke: var(--bg); }
+
+.og-dealer { font-size: 15px; font-weight: 600; color: var(--muted); margin-bottom: 4px; padding-right: 44px; overflow-wrap: anywhere; }
+.og-offer.accepted .og-dealer { color: #b5b7c2; }
+.og-price { font-size: 46px; font-weight: 700; letter-spacing: -.055em; line-height: 1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.og-offer.accepted .og-price { color: var(--lime); }
+.og-save { margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--success); }
+.og-offer.accepted .og-save { color: var(--lime); }
+
+.og-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+.og-fact { min-width: 0; background: var(--bg-2); border: 1px solid var(--line); border-radius: 18px; padding: 12px 14px; }
+.og-fact span { display: block; font-size: var(--t-xs); font-weight: 600; color: var(--muted); margin-bottom: 2px; }
+.og-fact b { display: block; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+.og-offer.accepted .og-fact { background: rgba(255,255,255,.1); border-color: transparent; }
+.og-offer.accepted .og-fact span { color: #b5b7c2; }
+.og-offer.accepted .og-fact b { color: #fff; }
+.og-notes { margin-top: 14px; font-size: 14px; color: var(--ink-2); line-height: 1.55; overflow-wrap: anywhere; }
+.og-offer.accepted .og-notes { color: #c3c5cf; }
+
+.og-votes { margin-top: 18px; }
+.og-track { height: 8px; border-radius: 8px; background: var(--track); overflow: hidden; }
+.og-fill { height: 100%; border-radius: 8px; background: var(--acc-fill); transition: width .8s var(--ease); }
+.og-offer.accepted .og-track { background: rgba(255,255,255,.18); }
+.og-offer.accepted .og-fill { background: var(--lime); }
+.og-vtxt { display: flex; justify-content: space-between; gap: 10px; margin-top: 8px; font-size: 13px; font-weight: 500; color: var(--muted); }
+.og-vtxt b { color: var(--ink); font-weight: 700; }
+.og-offer.accepted .og-vtxt, .og-offer.accepted .og-vtxt b { color: #c3c5cf; }
+
+.og-undo { margin-top: 10px; min-height: 44px; background: none; border: none; color: var(--acc-text); font-weight: 700; font-size: 14px; cursor: pointer; padding: 0; }
+.og-hint { margin: 2px 6px 0; font-size: 13px; color: var(--muted); font-weight: 500; }
+
+.og-empty { border: 2px dashed var(--line-2); border-radius: var(--r-xl); padding: 52px 24px; text-align: center; color: var(--muted); }
+.og-empty h3 { font-size: 22px; font-weight: 700; color: var(--ink); margin-bottom: 8px; letter-spacing: -.03em; }
+
+.og-sk { background: var(--card); border: 2px solid var(--line); border-radius: var(--r-xl); padding: 24px; display: grid; gap: 12px; }
+
+/* ---------- confirm bar: floats just above the base dock ---------- */
+.og-bar { position: fixed; left: 50%; bottom: calc(var(--dock-h) + 24px + env(safe-area-inset-bottom)); z-index: 55; width: min(660px, calc(100% - 20px)); transform: translate(-50%, 200%); opacity: 0; visibility: hidden; pointer-events: none; transition: transform .4s var(--ease), opacity .3s, visibility .4s; display: flex; align-items: center; gap: 10px; background: var(--panel); color: var(--on-panel); border: 1px solid var(--line-2); border-radius: 26px; padding: 10px 10px 10px 20px; box-shadow: var(--shadow-2); }
+.og-bar.show { transform: translate(-50%, 0); opacity: 1; visibility: visible; pointer-events: auto; }
+.og-bar-txt { flex: 1; min-width: 0; }
+.og-bar-txt small { display: block; font-size: var(--t-xs); font-weight: 600; color: #b5b7c2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.og-bar-txt b { display: block; font-size: 24px; font-weight: 700; letter-spacing: -.04em; line-height: 1.15; color: var(--lime); font-variant-numeric: tabular-nums; }
+.og-bar .btn { padding: 13px 20px; white-space: nowrap; background: var(--lime); color: #101114; }
+.og-bar .btn.og-cancel { background: rgba(255,255,255,.14); color: #fff; }
+.og-bar .btn.is-loading::after { border-top-color: #101114; }
+.og-cancel .i { display: none; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1100px) { .og { grid-template-columns: 300px minmax(0, 1fr); } }
+@media (max-width: 900px) {
+    .og { grid-template-columns: 1fr; }
+    .og-side { position: static; }
+    .og-sum h2 { max-width: calc(100% - 70px); }
+}
+@media (max-width: 600px) {
+    .og-sum { padding: 24px 20px; }
+    .og-sum h2 { font-size: 26px; }
+    .og-offer { padding: 20px; border-radius: var(--r-card); }
+    .og-radio { top: 18px; right: 18px; }
+    .og-price { font-size: 38px; }
+    .og-win { padding: 16px; }
+    .og-bar { padding: 10px 10px 10px 16px; }
+    .og-bar-txt b { font-size: 21px; }
+    .og-cancel .t { display: none; }
+    .og-cancel .i { display: inline; }
+    .og-bar .btn.og-cancel { padding: 13px 16px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<a class="back-link" href="{{ url_for('customer_my_groups_page') }}">← Back to My Groups</a>
+
+<div class="og">
+
+    <aside class="og-side">
+        <section class="og-sum">
+            <span class="og-eyebrow">Group offers</span>
+            <h2>{{ group.group_name }}</h2>
+            <p class="sub" id="offersSub">Loading offers...</p>
+            <p class="og-showroom" id="ogShowroom" hidden></p>
+
+            <div class="og-seatwrap" id="ogSeatWrap" hidden>
+                <div class="stage og-stage" id="ogSeats"></div>
+                <p class="og-seatcount" id="ogSeatCount"></p>
+            </div>
+
+            <div class="og-progress" id="ogProgress" hidden>
+                <div class="og-ring">
+                    <svg viewBox="0 0 84 84" aria-hidden="true"><circle class="tr" cx="42" cy="42" r="35"/><circle class="fg" id="ogRing" cx="42" cy="42" r="35" stroke-dasharray="0 220"/></svg>
+                    <b id="ogPct">0%</b>
+                </div>
+                <p><strong id="ogVoted">0 of 0 voted</strong><span id="ogVotedSub">members have voted</span></p>
+            </div>
+
+            <ol class="og-flow" id="ogFlow">
+                <li>Group fills up</li>
+                <li>Dealers send offers</li>
+                <li>You vote, we finalize</li>
+                <li>Vehicle delivered</li>
+            </ol>
+        </section>
+    </aside>
+
+    <section class="og-main">
+        <div class="og-list" id="offersList" data-group-id="{{ group.id }}" role="radiogroup" aria-label="Dealer offers" aria-busy="true">
+            <div class="og-sk" aria-hidden="true"><div class="skel" style="width:30%;height:14px"></div><div class="skel" style="width:60%;height:40px"></div><div class="skel" style="height:56px"></div><div class="skel" style="height:8px"></div></div>
+            <div class="og-sk" aria-hidden="true"><div class="skel" style="width:30%;height:14px"></div><div class="skel" style="width:60%;height:40px"></div><div class="skel" style="height:56px"></div><div class="skel" style="height:8px"></div></div>
+        </div>
+    </section>
+
+</div>
+
+<div class="og-bar" id="ogBar" role="region" aria-label="Confirm your vote"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* Runs AFTER base.html's script, so renderOffers can be swapped immediately.
+   base's sendVote() / reloadOffers() call renderOffers() by name, so they use this version.
+   base's sendVote() already fires celebrate() on a successful vote, so no confetti here. */
+(function () {
+    const $ = id => document.getElementById(id);
+    const list = $("offersList");
+    const GID = Number(list.dataset.groupId);
+    const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>';
+    const CIRC = 2 * Math.PI * 35;
+    let pick = null, last = null;
+
+    function eta(d) {
+        const t = new Date();
+        t.setDate(t.getDate() + Number(d));
+        return t.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+    }
+    function setSteps(done) {
+        document.querySelectorAll("#ogFlow li").forEach((li, i) => {
+            li.className = i < done ? "done" : (i === done ? "active" : "");
+        });
+    }
+
+    /* seat map: same car as Available Groups / My Deals. target comes from the groups API (cached by base). */
+    let seatTarget = null;
+    async function drawSeats(members, pendingSeat) {
+        const wrap = $("ogSeatWrap");
+        if (seatTarget === null) {
+            try {
+                if (!GROUP_CACHE.has(GID)) await fetchGroups();
+                const g = GROUP_CACHE.get(GID);
+                seatTarget = g ? Number(g.target_members) || 0 : 0;
+            } catch (_) { seatTarget = 0; }
+        }
+        const target = Math.max(seatTarget, members);
+        if (!target) { wrap.hidden = true; return; }
+        const opts = { sm: true, name: "{{ group.group_name|e }}", type: (GROUP_CACHE.get(GID) || {}).vehicle_type };
+        if (pendingSeat) opts.next = true;
+        else if (members > 0) opts.you = 0;
+        $("ogSeats").innerHTML = seatMapHTML(members, target, opts);
+        const free = Math.max(0, target - members);
+        $("ogSeatCount").innerHTML = "<b>" + members + "</b> of " + target + " seats filled" + (free ? " · " + free + (free === 1 ? " seat" : " seats") + " open" : " · full");
+        wrap.hidden = false;
+    }
+
+    function setBar() {
+        const bar = $("ogBar");
+        const offers = (last && last.offers) || [];
+        const o = pick !== null ? offers.find(x => Number(x.id) === pick) : null;
+        if (!o) {
+            bar.classList.remove("show");
+            document.body.classList.remove("has-action-bar");
+            return;
+        }
+        const single = offers.length === 1;
+        bar.innerHTML =
+            '<div class="og-bar-txt"><small>' + (single ? "Agree with " : "Your vote · ") + escapeHTML(o.label) + "</small><b>" +
+            money(o.price) + "</b></div>" +
+            '<button type="button" class="btn og-cancel" data-cancel aria-label="Cancel"><span class="t">Cancel</span><span class="i" aria-hidden="true">✕</span></button>' +
+            '<button type="button" class="btn" data-confirm>' + (single ? "I agree" : "Confirm vote") + "</button>";
+        bar.classList.add("show");
+        document.body.classList.add("has-action-bar");
+    }
+
+    function draw(data) {
+        const sub = $("offersSub");
+        const offers = (data.offers || []).slice();
+        const members = Number(data.confirmed_count == null ? data.member_count : data.confirmed_count) || 0;
+        const completed = data.group_status === "Completed" || data.deal_status === "Delivered";
+        const closed = data.group_status === "Closed" || completed;
+        const pendingSeat = data.my_status === "pending";
+        const locked = closed || pendingSeat;
+        const my = Number(data.my_vote) || 0;
+        const single = offers.length === 1;
+        const voters = offers.reduce((a, o) => a + (Number(o.votes) || 0), 0);
+
+        if (pick !== null && (closed || pick === my || !offers.some(o => Number(o.id) === pick))) pick = null;
+
+        if (completed) sub.textContent = "Your vehicle has been delivered and this deal is complete. Thank you for buying with the group!";
+        else if (closed) sub.textContent = "A deal has been selected for this group. Our team will contact every member with the next steps." + (data.deal_status ? " Current step: " + data.deal_status + "." : "");
+        else if (single) sub.textContent = "There is one offer so far. Tell us if you are happy with it. Our team uses this to decide, and you can change your mind until then.";
+        else if (offers.length) sub.textContent = "Tap the offer you prefer, then confirm. The most popular offer is finalized by our team. You can change your vote until then.";
+        else sub.textContent = "No offers yet. Dealers will send their offers soon.";
+
+        const sr = $("ogShowroom");
+        const showroomNow = Number(data.showroom_price) || 0;
+        if (showroomNow > 0) { sr.innerHTML = "Showroom price<b>" + money(showroomNow) + "</b>"; sr.hidden = false; }
+        else { sr.hidden = true; }
+
+        const prog = $("ogProgress");
+        if (offers.length && members) {
+            const pct = Math.min(100, Math.round(voters / members * 100));
+            prog.hidden = false;
+            $("ogPct").textContent = pct + "%";
+            $("ogRing").setAttribute("stroke-dasharray", (pct / 100 * CIRC).toFixed(1) + " " + CIRC.toFixed(1));
+            $("ogVoted").textContent = voters + " of " + members + " voted";
+            $("ogVotedSub").textContent = voters >= members ? "everyone has voted" : (members - voters) + " still to vote";
+        } else {
+            prog.hidden = true;
+        }
+
+        setSteps(completed ? 4 : (closed ? 3 : (offers.length ? 2 : 1)));
+        drawSeats(members, pendingSeat);
+
+        if (!offers.length) {
+            list.innerHTML = '<div class="og-empty"><h3>Waiting for dealer offers</h3><p>Your group is ready. Dealers are preparing their quotations, and they will appear here.</p></div>';
+            setBar();
+            return;
+        }
+
+        offers.sort((a, b) =>
+            (b.status === "Accepted") - (a.status === "Accepted") ||
+            (Number(b.votes) || 0) - (Number(a.votes) || 0) ||
+            Number(a.price) - Number(b.price));
+
+        const prices = offers.map(o => Number(o.price) || 0);
+        const minP = Math.min.apply(null, prices), maxP = Math.max.apply(null, prices);
+        const days = offers.map(o => o.delivery_days).filter(d => d !== null && d !== undefined).map(Number);
+        const minD = days.length ? Math.min.apply(null, days) : null;
+        const voteList = offers.map(x => Number(x.votes) || 0);
+        const maxV = Math.max.apply(null, voteList);
+        const uniq = (arr, v) => arr.filter(x => x === v).length === 1;
+
+        const accepted = offers.find(o => o.status === "Accepted");
+        let html = "";
+        if (completed) {
+            html += '<div class="og-win"><div class="ic">' + CHECK + '</div><div><b>Vehicle delivered' +
+                (accepted ? " at " + money(accepted.price) : "") +
+                "</b><span>Your purchase is complete. You can find this under Past deals.</span></div></div>";
+        } else if (closed && accepted) {
+            html += '<div class="og-win"><div class="ic">' + CHECK + '</div><div><b>Deal selected: ' + escapeHTML(accepted.label) +
+                " at " + money(accepted.price) + "</b><span>Our team will contact every member with the next steps.</span></div></div>";
+        }
+        if (pendingSeat && !closed) {
+            html += '<div class="og-win"><div class="ic">' + CHECK + '</div><div><b>Your seat is reserved</b><span>Our team will verify and confirm it soon. You can compare the offers now and vote once your seat is confirmed.</span></div></div>';
+        }
+
+        html += offers.map(o => {
+            const id = Number(o.id);
+            const isWin = o.status === "Accepted";
+            const mine = my === id;
+            const picked = pick === id;
+            const votes = Number(o.votes) || 0;
+            const share = members ? Math.min(100, Math.round(votes / members * 100)) : 0;
+            const price = Number(o.price) || 0;
+            const hasD = o.delivery_days !== null && o.delivery_days !== undefined;
+
+            const badges = [];
+            if (isWin) badges.push('<span class="og-b win">Selected deal</span>');
+            if (mine) badges.push('<span class="og-b mine">Your vote</span>');
+            if (offers.length > 1) {
+                if (uniq(prices, minP) && price === minP) badges.push('<span class="og-b price">Lowest price</span>');
+                if (hasD && minD !== null && uniq(days, minD) && Number(o.delivery_days) === minD) badges.push('<span class="og-b fast">Fastest delivery</span>');
+                if (maxV > 0 && uniq(voteList, maxV) && votes === maxV) badges.push('<span class="og-b votes">Most votes</span>');
+            }
+
+            const showroom = Number(data.showroom_price) || 0;
+            let saves = "";
+            if (showroom > 0 && price > 0 && showroom > price) {
+                const off = showroom - price;
+                saves = '<div class="og-save">Showroom ' + money(showroom) + " · You save " + money(off) + " (" + Math.round(off / showroom * 100) + "%)</div>";
+            } else if (!showroom && offers.length > 1 && maxP > price) {
+                saves = '<div class="og-save">' + money(maxP - price) + " less than the highest offer</div>";
+            }
+            const delivery = hasD ? Number(o.delivery_days) + " days · ~" + eta(o.delivery_days) : "Not specified";
+            const notes = o.notes ? '<p class="og-notes">' + escapeHTML(o.notes) + "</p>" : "";
+            const undo = single && mine && !locked ? '<button type="button" class="og-undo" data-undo>Undo my response</button>' : "";
+            const radio = locked ? "" : '<span class="og-radio" aria-hidden="true">' + (mine || picked ? CHECK : "") + "</span>";
+            const a11y = locked || undo ? "" : ' role="radio" tabindex="0" aria-checked="' + (mine || picked) + '"';
+
+            return '<article class="og-offer' + (isWin ? " accepted" : "") + (mine ? " mine" : "") + (picked ? " picked" : "") + (locked ? " locked" : "") +
+                '" data-id="' + id + '"' + a11y + ">" + radio +
+                '<div class="og-badges">' + badges.join("") + "</div>" +
+                '<div class="og-dealer">' + escapeHTML(o.label) + "</div>" +
+                '<div class="og-price">' + money(price) + "</div>" + saves +
+                '<div class="og-facts"><div class="og-fact"><span>Delivery</span><b>' + delivery + "</b></div>" +
+                '<div class="og-fact"><span>Votes</span><b>' + votes + "</b></div></div>" + notes +
+                '<div class="og-votes"><div class="og-track"><div class="og-fill" style="width:' + share + '%"></div></div>' +
+                '<div class="og-vtxt"><span><b>' + votes + "</b> of " + members + " members " + (single ? "agree" : "voted for this") + "</span><span>" + share + "%</span></div></div>" +
+                undo + "</article>";
+        }).join("");
+
+        if (!locked && !single) html += '<p class="og-hint">Tap an offer to select it. You can change your vote until the deal is finalized.</p>';
+        if (hasAnyDelivery(offers)) html += '<p class="og-hint">Delivery dates are estimates counted from today.</p>';
+
+        list.innerHTML = html;
+        setBar();
+    }
+    function hasAnyDelivery(offers) { return offers.some(o => o.delivery_days !== null && o.delivery_days !== undefined); }
+
+    async function ogRender(groupId) {
+        list.setAttribute("aria-busy", "true");
+        try {
+            const result = await fetchJSON("/api/customer/groups/" + groupId + "/offers");
+            const data = result.data;
+            if (!result.ok || !data.success) throw new Error(data.message || "Unable to load offers.");
+            last = data;
+            draw(data);
+        } catch (error) {
+            const msg = friendlyError(error);
+            $("offersSub").textContent = msg;
+            $("ogProgress").hidden = true;
+            list.innerHTML = errorStateHTML("Couldn't load offers", msg, "reloadOffers");
+            pick = null;
+            setBar();
+        } finally {
+            list.setAttribute("aria-busy", "false");
+        }
+    }
+    window.renderOffers = ogRender;
+
+    function choose(card) {
+        if (!card || card.classList.contains("locked") || !last) return;
+        const id = Number(card.dataset.id);
+        if (id === (Number(last.my_vote) || 0)) pick = null;
+        else pick = pick === id ? null : id;
+        draw(last);
+    }
+
+    list.addEventListener("click", function (e) {
+        const undo = e.target.closest("[data-undo]");
+        if (undo) { e.stopPropagation(); removeVote(GID, undo); return; }
+        if (e.target.closest("[data-retry]")) return;
+        choose(e.target.closest(".og-offer"));
+    });
+    list.addEventListener("keydown", function (e) {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        const card = e.target.closest(".og-offer");
+        if (!card || card !== e.target) return;
+        e.preventDefault();
+        choose(card);
+    });
+
+    $("ogBar").addEventListener("click", async function (e) {
+        if (e.target.closest("[data-cancel]")) { pick = null; if (last) draw(last); return; }
+        const confirmBtn = e.target.closest("[data-confirm]");
+        if (!confirmBtn || pick === null) return;
+        await voteOffer(GID, pick, confirmBtn);
+    });
+})();
+</script>
+{% endblock %}

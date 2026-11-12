@@ -1,0 +1,296 @@
+{% extends "customer/base.html" %}
+{% block title %}Consulting{% endblock %}
+{% block eyebrow %}Talk to a car expert{% endblock %}
+{% block heading %}Expert Consulting{% endblock %}
+
+{% block head_extra %}
+<style>
+/* Buttons, inputs, chips, badges, tracker, sheet, toast, skeleton and empty/error states all come from base.html.
+   Only the layout and the page-specific pieces live here. */
+
+.cs { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: var(--s-4); align-items: start; }
+.cs-left { display: grid; gap: var(--s-4); min-width: 0; }
+.cs-right { min-width: 0; }
+
+/* hero (dark panel in both themes, same look as the other page headers) */
+.cs-hero { position: relative; overflow: hidden; background: var(--panel); color: var(--on-panel); border-radius: var(--r-xl); padding: 28px 24px; }
+.cs-hero::before { content: ""; position: absolute; right: -60px; bottom: -80px; width: 200px; height: 200px; border-radius: 50%; background: var(--acc); opacity: .9; pointer-events: none; }
+.cs-hero::after { content: ""; position: absolute; right: 24px; top: 24px; width: 48px; height: 48px; border-radius: 50%; background: var(--lime); pointer-events: none; }
+.cs-hero > * { position: relative; z-index: 1; }
+.cs-pill { display: inline-flex; align-items: center; min-height: 28px; font-size: var(--t-xs); font-weight: 700; color: #101114; background: var(--lime); padding: 4px 13px; border-radius: var(--r-pill); margin-bottom: 16px; }
+.cs-hero h2 { font-size: 30px; font-weight: 700; letter-spacing: -.045em; line-height: 1.05; margin-bottom: 10px; max-width: 280px; }
+.cs-hero p { color: #c3c5cf; font-size: 14px; line-height: 1.55; max-width: 320px; }
+.cs-perks { list-style: none; margin-top: 18px; display: grid; gap: 9px; }
+.cs-perks li { display: flex; gap: 10px; align-items: center; font-size: 14px; font-weight: 600; color: #e4e5ec; }
+.cs-perks li::before { content: "✓"; width: 22px; height: 22px; border-radius: 50%; background: var(--lime); color: #101114; font-size: 11px; font-weight: 800; display: grid; place-items: center; flex: none; }
+
+/* booking form */
+.cs-form { display: grid; gap: 16px; margin-top: 4px; }
+.cs-form label.f, .cs-form .f-lbl { display: grid; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.cs-form textarea.input { min-height: 96px; resize: vertical; font-weight: 500; line-height: 1.5; }
+.cs-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.cs-contact { font-size: 13.5px; color: var(--muted); font-weight: 500; background: var(--bg-2); border: 1px solid var(--line); border-radius: 18px; padding: 12px 16px; }
+.cs-contact b { color: var(--ink); font-weight: 700; }
+.cs-form .btn { width: 100%; padding: 16px; font-size: 16px; }
+
+/* my requests */
+.cs-list { display: grid; gap: 14px; }
+.cs-item { background: var(--card); border: 2px solid var(--line); border-radius: var(--r-card); padding: 20px; box-shadow: var(--shadow); }
+.cs-item.sched { border-color: var(--success); background: var(--success-soft); }
+.cs-item.done, .cs-item.cancel { opacity: .8; }
+.cs-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
+.cs-topic { font-size: 18px; font-weight: 700; letter-spacing: -.02em; line-height: 1.25; overflow-wrap: anywhere; min-width: 0; }
+.cs-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.cs-tag { display: inline-flex; align-items: center; min-height: 28px; font-size: var(--t-xs); font-weight: 600; padding: 4px 12px; border-radius: var(--r-pill); background: var(--card-2); color: var(--ink-2); overflow-wrap: anywhere; }
+.cs-note { font-size: 14px; color: var(--ink-2); line-height: 1.55; overflow-wrap: anywhere; }
+.cs-item .tracker { margin: 12px 0 2px; }
+.cs-when { margin-top: 12px; padding: 13px 16px; border-radius: 20px; background: var(--lime); color: #101114; font-weight: 700; font-size: 14.5px; }
+.cs-when a { color: #101114; font-weight: 700; text-decoration: underline; word-break: break-all; }
+.cs-reply { margin-top: 10px; font-size: 14px; color: var(--ink-2); overflow-wrap: anywhere; }
+.cs-cancel { margin-top: 8px; min-height: 44px; background: none; border: none; color: var(--danger); font-weight: 700; font-size: 13.5px; cursor: pointer; padding: 0; }
+.cs-sk { background: var(--card); border: 2px solid var(--line); border-radius: var(--r-card); padding: 20px; display: grid; gap: 12px; }
+
+/* smoothness: fade surfaces with the theme switch, new request cards ease in, no tap delay on touch */
+.cs-item, .cs-contact, .cs-tag, .cs-sk { transition: background-color var(--d-med), border-color var(--d-med), color var(--d-med), opacity var(--d-med); }
+.cs-item { animation: csin var(--d-slow) var(--ease) both; }
+@keyframes csin { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.cs-item.done, .cs-item.cancel { animation-name: csin-dim; }
+@keyframes csin-dim { from { opacity: 0; transform: translateY(8px); } to { opacity: .8; transform: none; } }
+.cs-cancel, .cs-chips .chip { touch-action: manipulation; }
+
+@media (max-width: 980px) { .cs { grid-template-columns: 1fr; } }
+@media (max-width: 600px) {
+    .cs-hero { padding: 24px 20px; }
+    .cs-hero h2 { font-size: 26px; max-width: calc(100% - 64px); }
+    .cs-item { padding: 18px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="cs">
+
+    <div class="cs-left">
+        <section class="cs-hero">
+            <span class="cs-pill">Consulting</span>
+            <h2>Not sure which car or offer to pick?</h2>
+            <p>Book a short session with our expert. Get honest advice before you join a group or vote on an offer.</p>
+            <ul class="cs-perks">
+                <li>Free for now</li>
+                <li>Call, video or chat, your choice</li>
+                <li>Pick your preferred day and time</li>
+            </ul>
+        </section>
+
+        <section class="page-card">
+            <h3 class="sheet-title" style="margin-bottom:16px">Book a session</h3>
+            <form class="cs-form" id="csForm" novalidate>
+                <label class="f">What do you need help with? *
+                    <select class="select" name="topic" required>
+                        <option value="">Select a topic</option>
+                        {% for t in topics %}<option>{{ t }}</option>{% endfor %}
+                    </select>
+                </label>
+
+                <label class="f">Car you are considering (optional)
+                    <select class="select" name="car_id">
+                        <option value="">Not decided yet</option>
+                        {% for c in cars %}<option value="{{ c.id }}">{{ c.brand }} {{ c.model }}{% if c.variant %} {{ c.variant }}{% endif %}</option>{% endfor %}
+                    </select>
+                </label>
+
+                <div class="f-lbl">
+                    <span id="modeLbl">How should we talk? *</span>
+                    <div class="cs-chips" id="modeChips" role="group" aria-labelledby="modeLbl">
+                        {% for m in modes %}<button type="button" class="chip {{ 'on' if loop.first else '' }}" data-v="{{ m }}" aria-pressed="{{ 'true' if loop.first else 'false' }}">{{ m }}</button>{% endfor %}
+                    </div>
+                </div>
+
+                <label class="f">Preferred date
+                    <input class="input" type="date" name="preferred_date" id="csDate">
+                </label>
+
+                <div class="f-lbl">
+                    <span id="slotLbl">Preferred time</span>
+                    <div class="cs-chips" id="slotChips" role="group" aria-labelledby="slotLbl">
+                        {% for s in slots %}<button type="button" class="chip" data-v="{{ s }}" aria-pressed="false">{{ s }}</button>{% endfor %}
+                    </div>
+                </div>
+
+                <label class="f">Anything we should know? (optional)
+                    <textarea class="input" name="note" maxlength="500" placeholder="Budget, family size, daily usage..."></textarea>
+                </label>
+
+                <div class="cs-contact">We will contact you on <b>{{ customer.phone or 'your registered phone' }}</b>.</div>
+
+                <button type="submit" class="btn btn-primary" id="csSubmit">Send request</button>
+            </form>
+        </section>
+    </div>
+
+    <div class="cs-right">
+        <h3 class="section-title" style="margin-top:0">My requests</h3>
+        <div class="cs-list" id="csList" aria-busy="true">
+            <div class="cs-sk" aria-hidden="true"><div class="skel" style="width:55%;height:22px"></div><div class="skel" style="width:35%;height:14px"></div><div class="skel" style="height:40px"></div></div>
+            <div class="cs-sk" aria-hidden="true"><div class="skel" style="width:55%;height:22px"></div><div class="skel" style="width:35%;height:14px"></div><div class="skel" style="height:40px"></div></div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* Loaded after base.html's script, so showMessage, escapeHTML, fetchJSON, friendlyError, badgeHTML,
+   statusMeta, trackerHTML, STAGES, errorStateHTML and the bottom sheet are ready.
+   No Jinja inside this script: the default call mode is read from the chip that the template marked "on". */
+(function () {
+    const $ = id => document.getElementById(id);
+    const list = $("csList");
+    const firstMode = document.querySelector("#modeChips .chip.on");
+    let mode = firstMode ? firstMode.dataset.v : "";
+    let slot = "";
+    let loadSeq = 0;   /* only the newest load() may paint, so a slow old response can't overwrite a fresh one */
+
+    function fmt(d, withTime) {
+        const x = new Date(d);
+        if (Number.isNaN(x.getTime())) return "";
+        return x.toLocaleString("en-IN", withTime
+            ? { weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }
+            : { weekday: "short", day: "2-digit", month: "short" });
+    }
+    const safeLink = u => /^https?:\/\//i.test(String(u || "")) ? String(u) : "";
+
+    /* today as the minimum date (local time, not UTC) */
+    const now = new Date();
+    $("csDate").min = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
+
+    function setPressed(chips, isOn) {
+        chips.forEach(c => { const on = isOn(c); c.classList.toggle("on", on); c.setAttribute("aria-pressed", String(on)); });
+    }
+    $("modeChips").addEventListener("click", e => {
+        const c = e.target.closest(".chip"); if (!c) return;
+        mode = c.dataset.v;
+        setPressed(document.querySelectorAll("#modeChips .chip"), x => x === c);
+    });
+    $("slotChips").addEventListener("click", e => {
+        const c = e.target.closest(".chip"); if (!c) return;
+        slot = slot === c.dataset.v ? "" : c.dataset.v;
+        setPressed(document.querySelectorAll("#slotChips .chip"), x => x.dataset.v === slot);
+    });
+
+    function card(r) {
+        const cls = r.status === "Scheduled" ? "sched" : r.status === "Completed" ? "done" : r.status === "Cancelled" ? "cancel" : "";
+        const m = statusMeta("consult", r.status);
+
+        const wanted = r.preferred_date
+            ? '<span class="cs-tag">Wanted: ' + escapeHTML(fmt(r.preferred_date + "T00:00:00", false)) + (r.preferred_slot ? ", " + escapeHTML(r.preferred_slot) : "") + "</span>"
+            : (r.preferred_slot ? '<span class="cs-tag">' + escapeHTML(r.preferred_slot) + "</span>" : "");
+        const tags = '<span class="cs-tag">' + escapeHTML(r.mode) + "</span>" +
+            (r.car_name ? '<span class="cs-tag">' + escapeHTML(r.car_name) + "</span>" : "") + wanted;
+
+        const idx = STAGES.consult.findIndex(s => s[0] === r.status);
+        const track = idx > -1 ? trackerHTML(STAGES.consult, idx) : "";
+
+        let when = "";
+        if (r.status === "Scheduled" && r.scheduled_at) {
+            const link = safeLink(r.meeting_link);
+            when = '<div class="cs-when">Scheduled: ' + escapeHTML(fmt(r.scheduled_at, true)) +
+                (link ? '<br><a href="' + escapeHTML(link) + '" target="_blank" rel="noopener noreferrer">Join link</a>' : "") + "</div>";
+        }
+        const reply = r.admin_note ? '<div class="cs-reply"><b>Expert:</b> ' + escapeHTML(r.admin_note) + "</div>" : "";
+        const cancel = ["Requested", "Scheduled"].includes(r.status)
+            ? '<button type="button" class="cs-cancel" data-cancel="' + Number(r.id) + '" data-topic="' + escapeHTML(r.topic) + '">Cancel request</button>' : "";
+
+        return '<article class="cs-item ' + cls + '"><div class="cs-top"><div class="cs-topic">' + escapeHTML(r.topic) + "</div>" + badgeHTML(m.tone, m.label) + "</div>" +
+            '<div class="cs-meta">' + tags + "</div>" +
+            (r.note ? '<div class="cs-note">' + escapeHTML(r.note) + "</div>" : "") + track + when + reply + cancel + "</article>";
+    }
+
+    async function load() {
+        const seq = ++loadSeq;
+        list.setAttribute("aria-busy", "true");
+        try {
+            const result = await fetchJSON("/api/customer/consultations");
+            if (seq !== loadSeq) return;
+            const data = result.data;
+            if (!result.ok || !data.success) throw new Error(data.message || "Unable to load your requests.");
+            const rows = data.consultations || [];
+            list.innerHTML = rows.length ? rows.map(card).join("")
+                : '<div class="empty-state"><div class="es-icon" aria-hidden="true">💬</div><h3>No requests yet</h3><p>Book your first session using the form.</p></div>';
+        } catch (err) {
+            if (seq !== loadSeq) return;
+            /* keep what is on screen if we already have requests, only show the error card on first load */
+            if (!list.querySelector(".cs-item")) list.innerHTML = errorStateHTML("Couldn't load your requests", friendlyError(err), "loadConsults");
+        } finally {
+            if (seq === loadSeq) list.setAttribute("aria-busy", "false");
+        }
+    }
+    window.loadConsults = load;
+
+    $("csForm").addEventListener("submit", async e => {
+        e.preventDefault();
+        const f = e.target;
+        if (!f.topic.value) { showMessage("Select what you need help with.", "danger"); f.topic.focus(); return; }
+
+        const btn = $("csSubmit");
+        if (btn.disabled) return;
+        btn.disabled = true; btn.classList.add("is-loading");
+        try {
+            const result = await fetchJSON("/api/customer/consultations", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    topic: f.topic.value, car_id: f.car_id.value, mode: mode,
+                    preferred_date: f.preferred_date.value, preferred_slot: slot, note: f.note.value
+                })
+            });
+            const data = result.data;
+            const good = result.ok && data.success;
+            showMessage(data.message || (good ? "Sent!" : "Something went wrong."), good ? "success" : "danger");
+            if (good) {
+                f.reset(); slot = "";
+                setPressed(document.querySelectorAll("#slotChips .chip"), () => false);
+                await load();
+            }
+        } catch (err) {
+            showMessage(friendlyError(err), "danger");
+        } finally {
+            btn.disabled = false; btn.classList.remove("is-loading");
+        }
+    });
+
+    /* cancelling asks first, in the same bottom sheet used across the app */
+    list.addEventListener("click", e => {
+        const b = e.target.closest("[data-cancel]"); if (!b) return;
+        const id = b.dataset.cancel;
+        openSheet(`
+            <h3 id="sheetTitle" class="sheet-title">Cancel this request?</h3>
+            <p class="sheet-sub">${escapeHTML(b.dataset.topic || "")}</p>
+            <div class="sheet-actions" style="margin-top:16px">
+                <button type="button" class="btn btn-danger" id="cancelYes">Yes, cancel it</button>
+                <button type="button" class="btn btn-ghost" data-close>Keep it</button>
+            </div>`);
+        $("cancelYes").onclick = async function () {
+            if (this.disabled) return;
+            this.disabled = true; this.classList.add("is-loading");
+            try {
+                const result = await fetchJSON("/api/customer/consultations/" + id + "/cancel", { method: "POST" });
+                const good = result.ok && result.data.success !== false;
+                showMessage(result.data.message || (good ? "Cancelled." : "Something went wrong."), good ? "success" : "danger");
+            } catch (err) {
+                showMessage(friendlyError(err), "danger");
+            }
+            closeSheet();
+            await load();
+        };
+    });
+
+    load();
+    /* pick up changes the expert made (scheduled, note, link) when the customer comes back to the tab */
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,166 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CarTogether Admin Login</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg,#14243d,#315d91);
+}
+
+.login-box {
+    width: 380px;
+    max-width: calc(100% - 30px);
+    background: white;
+    padding: 35px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px #0003;
+}
+
+h2 {
+    text-align: center;
+    color: #183b63;
+}
+
+p {
+    text-align: center;
+    color: #777;
+    font-size: 14px;
+}
+
+label {
+    display: block;
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+input {
+    width: 100%;
+    padding: 13px;
+    margin-top: 8px;
+    border: 1px solid #ddd;
+    border-radius: 7px;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 25px;
+    border: none;
+    background: #f5a623;
+    color: #14243d;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 7px;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#message {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.back {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    text-decoration: none;
+    color: #315d91;
+}
+</style>
+</head>
+
+<body>
+
+<div class="login-box">
+
+    <h2>CarTogether</h2>
+    <p>Administrator Login</p>
+
+    <form id="adminLoginForm">
+
+        <label>Email Address</label>
+        <input type="email" id="email" required>
+
+        <label>Password</label>
+        <input type="password" id="password" required>
+
+        <button type="submit" id="loginBtn">
+            Admin Login
+        </button>
+
+        <p id="message"></p>
+
+    </form>
+
+    <a href="/" class="back">Back to Home</a>
+
+</div>
+
+<script>
+document.getElementById("adminLoginForm")
+.addEventListener("submit", async function(e) {
+
+    e.preventDefault();
+
+    const button = document.getElementById("loginBtn");
+    const message = document.getElementById("message");
+
+    button.disabled = true;
+    button.textContent = "Checking...";
+    message.textContent = "";
+
+    try {
+
+        const response = await fetch("/api/admin/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email: document.getElementById("email").value.trim(),
+                password: document.getElementById("password").value
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            window.location.href = "/admin-dashboard";
+        } else {
+            message.style.color = "red";
+            message.textContent = result.message;
+        }
+
+    } catch(error) {
+        message.style.color = "red";
+        message.textContent = "Server connection error.";
+    }
+
+    button.disabled = false;
+    button.textContent = "Admin Login";
+
+});
+</script>
+
+</body>
+</html>
+```

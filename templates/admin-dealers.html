@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Dealers | CarTogether Admin</title>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+
+        body { background: #f3f6fb; color: #222; }
+
+        .topbar {
+            background: #1746a2;
+            color: #fff;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .topbar .brand { font-size: 22px; font-weight: bold; }
+
+        .topbar nav { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+
+        .topbar nav a { color: #fff; text-decoration: none; font-size: 14px; }
+        .topbar nav a.active { font-weight: bold; text-decoration: underline; }
+
+        .topbar form button {
+            background: #fff;
+            color: #1746a2;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .page { max-width: 1100px; margin: 25px auto; padding: 0 16px; }
+
+        .page-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .primary {
+            background: #1746a2;
+            color: #fff;
+            border: none;
+            padding: 11px 18px;
+            border-radius: 7px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .primary:hover { background: #10357d; }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,.07);
+            overflow-x: auto;
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+
+        th, td { padding: 12px 14px; text-align: left; font-size: 14px; border-bottom: 1px solid #eee; }
+
+        th { background: #f7f9fd; color: #555; }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .Approved { background: #e3f6e8; color: #1b7a34; }
+        .Pending  { background: #fff4d6; color: #9a6b00; }
+        .Blocked  { background: #fde2e2; color: #b42318; }
+        .Rejected { background: #ececec; color: #555; }
+
+        .small-btn {
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            font-size: 13px;
+            cursor: pointer;
+            margin-right: 4px;
+        }
+        .edit-btn { background: #e8eefb; color: #1746a2; }
+        .del-btn  { background: #fde2e2; color: #b42318; }
+
+        .empty { padding: 30px; text-align: center; color: #777; }
+
+        /* Modal */
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.45);
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            z-index: 10;
+        }
+        .overlay.show { display: flex; }
+
+        .modal {
+            background: #fff;
+            width: 100%;
+            max-width: 480px;
+            max-height: 92vh;
+            overflow-y: auto;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .modal h3 { margin-bottom: 16px; }
+
+        .field { margin-bottom: 12px; }
+
+        .field label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #333; }
+
+        .field input, .field select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ddd;
+            border-radius: 7px;
+            font-size: 14px;
+        }
+        .field input:focus, .field select:focus { outline: none; border-color: #1746a2; }
+        .field input:disabled { background: #f0f0f0; }
+
+        .hint { font-size: 12px; color: #777; margin-top: 4px; }
+
+        .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+
+        .cancel {
+            flex: 1;
+            background: #eee;
+            border: none;
+            border-radius: 7px;
+            padding: 11px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .modal-actions .primary { flex: 1; }
+
+        #formMsg { margin-top: 12px; text-align: center; font-size: 14px; }
+        #pageMsg { margin-bottom: 12px; font-size: 14px; }
+    </style>
+</head>
+
+<body>
+
+<div class="topbar">
+    <div class="brand">CarTogether Admin</div>
+
+    <nav>
+        <a href="/admin-dashboard">Cars</a>
+        <a href="/admin-interests">Interests</a>
+        <a href="/admin-groups">Groups</a>
+        <a href="/admin-members">Members</a>
+        <a href="/admin-dealers" class="active">Dealers</a>
+
+        <form method="POST" action="/admin-logout">
+            <button type="submit">Logout</button>
+        </form>
+    </nav>
+</div>
+
+<div class="page">
+
+    <div class="page-head">
+        <h2>Manage Dealers</h2>
+        <button class="primary" id="addBtn" type="button">+ Add Dealer</button>
+    </div>
+
+    <p id="pageMsg" role="status"></p>
+
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Business</th>
+                    <th>Contact</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>City</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="dealerBody">
+                <tr><td colspan="7" class="empty">Loading dealers...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- Add / Edit modal -->
+<div class="overlay" id="overlay">
+    <div class="modal">
+        <h3 id="modalTitle">Add Dealer</h3>
+
+        <form id="dealerForm">
+
+            <div class="field">
+                <label>Business name *</label>
+                <input name="business_name" required>
+            </div>
+
+            <div class="field">
+                <label>Contact person *</label>
+                <input name="contact_person" required>
+            </div>
+
+            <div class="field">
+                <label>Email *</label>
+                <input name="email" type="email" required>
+                <p class="hint" id="emailHint" style="display:none;">Email cannot be changed after the dealer is created.</p>
+            </div>
+
+            <div class="field">
+                <label>Phone (10 digits) *</label>
+                <input name="phone" required maxlength="10" inputmode="numeric">
+            </div>
+
+            <div class="field">
+                <label>City *</label>
+                <input name="city" required>
+            </div>
+
+            <div class="field">
+                <label>Address</label>
+                <input name="address">
+            </div>
+
+            <div class="field" id="statusField" style="display:none;">
+                <label>Status</label>
+                <select name="status">
+                    <option>Approved</option>
+                    <option>Pending</option>
+                    <option>Blocked</option>
+                    <option>Rejected</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label id="passwordLabel">Password * (min 8 characters)</label>
+                <input name="password" type="password" minlength="8" autocomplete="new-password">
+                <p class="hint" id="passwordHint" style="display:none;">Leave empty to keep the current password.</p>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="cancel" id="cancelBtn">Cancel</button>
+                <button type="submit" class="primary" id="saveBtn">Save</button>
+            </div>
+
+            <p id="formMsg" role="status"></p>
+        </form>
+    </div>
+</div>
+
+<script>
+const body = document.getElementById("dealerBody");
+const overlay = document.getElementById("overlay");
+const form = document.getElementById("dealerForm");
+const formMsg = document.getElementById("formMsg");
+const pageMsg = document.getElementById("pageMsg");
+
+let dealers = [];
+let editingId = null;
+
+function showPageMessage(text, color) {
+    pageMsg.style.color = color;
+    pageMsg.textContent = text;
+}
+
+function cell(text) {
+    const td = document.createElement("td");
+    td.textContent = text || "-";
+    return td;
+}
+
+async function loadDealers() {
+    try {
+        const response = await fetch("/api/admin/dealers");
+        const result = await response.json();
+
+        if (!response.ok) throw new Error(result.message || "Unable to load dealers.");
+
+        dealers = result.dealers || [];
+        renderDealers();
+    } catch (error) {
+        body.innerHTML = "";
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 7;
+        td.className = "empty";
+        td.style.color = "red";
+        td.textContent = error.message;
+        tr.appendChild(td);
+        body.appendChild(tr);
+    }
+}
+
+function renderDealers() {
+    body.innerHTML = "";
+
+    if (!dealers.length) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 7;
+        td.className = "empty";
+        td.textContent = "No dealers yet. Click + Add Dealer to create one.";
+        tr.appendChild(td);
+        body.appendChild(tr);
+        return;
+    }
+
+    dealers.forEach(function (dealer) {
+        const tr = document.createElement("tr");
+
+        tr.appendChild(cell(dealer.business_name));
+        tr.appendChild(cell(dealer.contact_person));
+        tr.appendChild(cell(dealer.email));
+        tr.appendChild(cell(dealer.phone));
+        tr.appendChild(cell(dealer.city));
+
+        const statusTd = document.createElement("td");
+        const badge = document.createElement("span");
+        const status = dealer.status || "Pending";
+        badge.className = "badge " + status;
+        badge.textContent = status;
+        statusTd.appendChild(badge);
+        tr.appendChild(statusTd);
+
+        const actionTd = document.createElement("td");
+
+        const editBtn = document.createElement("button");
+        editBtn.className = "small-btn edit-btn";
+        editBtn.textContent = "Edit";
+        editBtn.addEventListener("click", function () { openModal(dealer); });
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "small-btn del-btn";
+        delBtn.textContent = "Delete";
+        delBtn.addEventListener("click", function () { deleteDealer(dealer); });
+
+        actionTd.appendChild(editBtn);
+        actionTd.appendChild(delBtn);
+        tr.appendChild(actionTd);
+
+        body.appendChild(tr);
+    });
+}
+
+function openModal(dealer) {
+    form.reset();
+    formMsg.textContent = "";
+    editingId = dealer ? dealer.id : null;
+
+    const isEdit = Boolean(dealer);
+
+    document.getElementById("modalTitle").textContent = isEdit ? "Edit Dealer" : "Add Dealer";
+    document.getElementById("statusField").style.display = isEdit ? "block" : "none";
+    document.getElementById("emailHint").style.display = isEdit ? "block" : "none";
+    document.getElementById("passwordHint").style.display = isEdit ? "block" : "none";
+    document.getElementById("passwordLabel").textContent = isEdit
+        ? "New password (optional, min 8 characters)"
+        : "Password * (min 8 characters)";
+
+    form.password.required = !isEdit;
+    form.email.disabled = isEdit;
+
+    if (isEdit) {
+        form.business_name.value = dealer.business_name || "";
+        form.contact_person.value = dealer.contact_person || "";
+        form.email.value = dealer.email || "";
+        form.phone.value = dealer.phone || "";
+        form.city.value = dealer.city || "";
+        form.address.value = dealer.address || "";
+        form.status.value = dealer.status || "Pending";
+    }
+
+    overlay.classList.add("show");
+}
+
+function closeModal() {
+    overlay.classList.remove("show");
+}
+
+document.getElementById("addBtn").addEventListener("click", function () { openModal(null); });
+document.getElementById("cancelBtn").addEventListener("click", closeModal);
+
+overlay.addEventListener("click", function (e) {
+    if (e.target === overlay) closeModal();
+});
+
+form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const saveBtn = document.getElementById("saveBtn");
+    const isEdit = editingId !== null;
+
+    const payload = {
+        business_name: form.business_name.value.trim(),
+        contact_person: form.contact_person.value.trim(),
+        phone: form.phone.value.trim(),
+        city: form.city.value.trim(),
+        address: form.address.value.trim()
+    };
+
+    if (isEdit) {
+        payload.status = form.status.value;
+        if (form.password.value) payload.password = form.password.value;
+    } else {
+        payload.email = form.email.value.trim();
+        payload.password = form.password.value;
+    }
+
+    saveBtn.disabled = true;
+    formMsg.style.color = "#333";
+    formMsg.textContent = "Saving...";
+
+    try {
+        const url = isEdit ? "/api/admin/dealers/" + editingId : "/api/admin/dealers";
+
+        const response = await fetch(url, {
+            method: isEdit ? "PUT" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) throw new Error(result.message || "Unable to save dealer.");
+
+        closeModal();
+        showPageMessage(result.message, "green");
+        loadDealers();
+    } catch (error) {
+        formMsg.style.color = "red";
+        formMsg.textContent = error.message;
+    } finally {
+        saveBtn.disabled = false;
+    }
+});
+
+async function deleteDealer(dealer) {
+    const ok = confirm(
+        "Delete " + dealer.business_name + "?\n\nThis also deletes their login account and cannot be undone."
+    );
+
+    if (!ok) return;
+
+    try {
+        const response = await fetch("/api/admin/dealers/" + dealer.id, { method: "DELETE" });
+        const result = await response.json();
+
+        if (!response.ok) throw new Error(result.message || "Unable to delete dealer.");
+
+        showPageMessage(result.message, "green");
+        loadDealers();
+    } catch (error) {
+        showPageMessage(error.message, "red");
+    }
+}
+
+loadDealers();
+</script>
+
+</body>
+</html>

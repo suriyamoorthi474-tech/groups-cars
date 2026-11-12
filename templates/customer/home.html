@@ -1,0 +1,232 @@
+{% extends "customer/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block eyebrow %}Group buying{% endblock %}
+{% block heading %}<span id="greet">Welcome</span>, {{ (customer.full_name or 'there').split(' ')[0] }}{% endblock %}
+
+{% block head_extra %}
+<style>
+/* home = your car and your next step. No stat wall. */
+.hero { --car-a: #2b2f3e; --car-b: #1a1d28; --car-glass: #0c0d12; --line-2: #3d4152; --seat-line: #7a7f94; --glow: rgba(215,255,63,.42); --muted: #b5b7c2; --ink: #f4f2ed;
+    position: relative; overflow: hidden; color: #fff; border: 1px solid var(--line); border-radius: var(--r-xl); padding: 20px 20px 22px; margin-bottom: 14px;
+    background: radial-gradient(ellipse 80% 38% at 50% 36%, rgba(79,91,255,.5), transparent 72%), var(--panel); }
+.hero .eyebrow { color: var(--lime); margin-bottom: 4px; }
+.hero .who { font-weight: 600; color: #dfe0e8; overflow-wrap: anywhere; }
+.hero-in { display: grid; gap: 4px; grid-template-areas: "top" "car" "text"; }
+.hero-top { grid-area: top; }
+.hero-car { grid-area: car; display: grid; place-items: center; padding: 22px 0 26px; }
+.hero-text { grid-area: text; min-width: 0; }
+.hero h1 { font-size: clamp(30px, 9vw, 44px); font-weight: 700; letter-spacing: -.045em; line-height: 1.04; margin-bottom: 10px; overflow-wrap: anywhere; }
+.hero .lead { color: #d0d2dc; max-width: 440px; margin-bottom: 18px; }
+.hero .tracker { margin: 0 0 20px; }
+.hero-cta { display: grid; gap: 8px; }
+.hero .btn.lime { background: var(--lime); color: #101114; min-height: 52px; font-size: 15.5px; }
+.hero .btn.ghost { background: rgba(255,255,255,.12); color: #fff; box-shadow: none; }
+.hero .btn.ghost:hover { background: rgba(255,255,255,.2); opacity: 1; }
+.hero-more { display: inline-flex; align-items: center; min-height: 44px; margin-top: 6px; color: #c9ccd8; font-weight: 600; font-size: 14px; text-decoration: none; }
+.hero-more:hover { color: #fff; }
+.hero .skel { background: linear-gradient(90deg, rgba(255,255,255,.07) 25%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.07) 75%); background-size: 200% 100%; }
+.hero.is-error { background: var(--panel); }
+.hero.is-error .btn { background: var(--lime); color: #101114; }
+.next-rise { animation: rise var(--d-slow) var(--ease) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+.strip { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--card); border: 1px solid var(--line); border-radius: 26px; margin-bottom: 26px; }
+.strip > div { padding: 16px 6px; text-align: center; min-width: 0; }
+.strip > div + div { border-left: 1px solid var(--line); }
+.strip > div.glow { box-shadow: inset 0 0 0 2px var(--ink); border-radius: 22px; border-left-color: transparent; }
+.strip b { display: block; font-size: 30px; font-weight: 700; letter-spacing: -.05em; line-height: 1; font-variant-numeric: tabular-nums; }
+.strip span { display: block; margin-top: 6px; font-size: 11.5px; line-height: 1.25; font-weight: 600; color: var(--muted); }
+
+.jump { display: grid; gap: 8px; margin-bottom: 30px; }
+.jump a { position: relative; display: flex; align-items: center; gap: 14px; min-height: 68px; padding: 12px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 24px; text-decoration: none; transition: border-color var(--d-med), transform var(--d-fast) var(--ease); }
+.jump a:hover { border-color: var(--ink); }
+.jump a:active { transform: scale(.98); }
+.jump .ic { width: 44px; height: 44px; flex: none; border-radius: 50%; background: var(--acc-soft); display: grid; place-items: center; }
+.jump a:nth-child(2) .ic { background: var(--lime); }
+.jump a:nth-child(3) .ic { background: var(--success-soft); }
+.jump a:nth-child(4) .ic { background: rgba(122,63,224,.2); }
+.jump .ic svg { width: 22px; height: 22px; stroke: var(--ink); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.jump a:nth-child(2) .ic svg { stroke: #101114; }
+.jump strong { display: block; font-size: 16px; letter-spacing: -.02em; }
+.jump small { display: block; color: var(--muted); font-size: 13px; }
+.jump .go { margin-left: auto; width: 34px; height: 34px; flex: none; border-radius: 50%; background: var(--bg-2); display: grid; place-items: center; font-weight: 700; transition: transform var(--d-med) var(--ease), background var(--d-med), color var(--d-med); }
+.jump a:hover .go { transform: translateX(4px); background: var(--ink); color: var(--bg); }
+
+/* how it works = a road with four stops */
+.road { list-style: none; counter-reset: h; margin-bottom: 30px; }
+.road li { position: relative; counter-increment: h; padding: 0 0 22px 54px; min-height: 58px; }
+.road li::before { content: counter(h); position: absolute; left: 0; top: 0; z-index: 1; width: 38px; height: 38px; border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-weight: 700; font-size: 15px; }
+.road li::after { content: ""; position: absolute; left: 18px; top: 38px; bottom: 0; border-left: 2px dashed var(--line-2); }
+.road li:last-child { padding-bottom: 0; }
+.road li:last-child::after { display: none; }
+.road li:last-child::before { background: var(--lime); color: #101114; }
+.road b { display: block; font-size: 17px; font-weight: 700; letter-spacing: -.02em; margin-bottom: 2px; }
+.road span { font-size: 14px; color: var(--muted); }
+
+@media (min-width: 520px) { .hero-cta { grid-auto-flow: column; justify-content: start; } }
+@media (min-width: 760px) {
+    .hero { padding: 34px 32px; }
+    .hero-in { grid-template-columns: 1.05fr 1fr; grid-template-rows: auto 1fr; column-gap: 32px; grid-template-areas: "top car" "text car"; align-items: center; }
+    .hero-car { padding: 10px 0; }
+    .jump { grid-template-columns: 1fr 1fr; }
+    .strip b { font-size: 38px; }
+}
+@media (min-width: 900px) {
+    .road { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .road li { padding: 52px 12px 0 0; min-height: 0; }
+    .road li::after { left: 46px; right: 8px; top: 18px; bottom: auto; border-left: 0; border-top: 2px dashed var(--line-2); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section id="nextStep" class="hero" aria-live="polite" aria-busy="true">
+    <div aria-hidden="true">
+        <div class="skel" style="width:36%;height:14px"></div>
+        <div class="skel" style="width:100%;height:210px;margin:18px 0;border-radius:28px"></div>
+        <div class="skel" style="width:86%;height:40px;margin-bottom:10px"></div>
+        <div class="skel" style="width:100%;height:52px;margin-top:20px;border-radius:16px"></div>
+    </div>
+</section>
+
+<section class="strip" aria-label="Your overview">
+    <div><b id="myGroupsCount">0</b><span>My groups</span></div>
+    <div><b data-count>{{ car_count }}</b><span>Cars to pick</span></div>
+    <div id="readyCard"><b id="readyCount">0</b><span>Offers ready</span></div>
+    <div><b id="purchasesCount">0</b><span>My purchases</span></div>
+</section>
+
+<h2 class="section-title">Quick Links</h2>
+
+<nav class="jump" aria-label="Quick links">
+    <a href="{{ url_for('customer_cars_page') }}">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16V11l2-5h10l2 5v5"/><path d="M3 16h18v3H3z"/></svg></span>
+        <span><strong>Browse Cars</strong><small>See all cars and show your interest.</small></span><span class="go" aria-hidden="true">→</span></a>
+    <a href="{{ url_for('customer_available_groups_page') }}">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M17 14c2.5 0 4.5 2 4.5 4.5"/></svg></span>
+        <span><strong>Available Groups</strong><small>See the best price first, then take a seat.</small></span><span class="go" aria-hidden="true">→</span></a>
+    <a href="{{ url_for('customer_my_groups_page') }}">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12l-8 8-9-9V4h7z"/><circle cx="7.5" cy="8.5" r="1.2"/></svg></span>
+        <span><strong>My Groups &amp; Offers</strong><small>Vote on offers and track your deal.</small></span><span class="go" aria-hidden="true">→</span></a>
+    <a href="{{ url_for('customer_consulting_page') }}">
+        <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.8 7L4 20l1.2-4.6A8 8 0 1 1 21 12z"/><path d="M9 11h6M9 14h4"/></svg></span>
+        <span><strong>Expert Consulting</strong><small>Book a free session with our car expert.</small></span><span class="go" aria-hidden="true">→</span></a>
+</nav>
+
+<h2 class="section-title">How It Works</h2>
+
+<ol class="road">
+    <li><b>Pick a car</b><span>Browse and show interest in cars you like.</span></li>
+    <li><b>Take a seat</b><span>More members in a group means stronger offers.</span></li>
+    <li><b>Vote on offers</b><span>Our team posts offers. You choose the one you prefer.</span></li>
+    <li><b>Get delivery</b><span>Our team finalizes the deal and keeps you updated.</span></li>
+</ol>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* Uses helpers from the base: byId, countUp, escapeHTML, seatMapHTML, trackerHTML, journeyCopy, journeyIndex, STAGES, URLS.
+   The base calls window.renderNextStep(groups) after it loads /api/customer/groups and fills the three counts. */
+(function () {
+    const CARS_URL = "{{ url_for('customer_cars_page') }}";
+
+    /* time based greeting */
+    const h = new Date().getHours();
+    byId("greet").textContent = h < 12 ? "Good morning" : (h < 17 ? "Good afternoon" : "Good evening");
+
+    /* cars count-up */
+    const cars = document.querySelector("[data-count]");
+    if (cars) countUp(cars, parseInt(cars.textContent, 10) || 0);
+
+    /* the group that needs you most comes first */
+    function rank(g) {
+        const n = Number(g.offer_count) || 0;
+        if (g.status !== "Closed" && n > 0 && g.my_status !== "pending") return 0;   /* offers waiting for my vote */
+        if (g.deal_status && g.deal_status !== "Delivered") return 1;                   /* deal in progress */
+        if (g.status !== "Closed") return g.my_status === "pending" ? 3 : 2;            /* still filling */
+        return 4;                                                                       /* delivered */
+    }
+
+    window.renderNextStep = function (groups) {
+        const box = byId("nextStep");
+        if (!box) return;
+        box.classList.remove("is-error");
+        box.setAttribute("aria-busy", "false");
+        const mine = groups.filter(g => g.is_joined);
+
+        const ready = mine.filter(g => (Number(g.offer_count) || 0) > 0 || g.status === "Closed").length;
+        byId("readyCard").classList.toggle("glow", ready > 0);
+
+        /* nothing joined yet: an empty car, one seat already glowing for you */
+        if (!mine.length) {
+            box.innerHTML = `<div class="hero-in next-rise">
+                <div class="hero-top"><p class="eyebrow">Your seat is waiting</p></div>
+                <div class="hero-car" aria-hidden="true">${seatMapHTML(0, 5, { next: true })}</div>
+                <div class="hero-text">
+                    <h1>Buy your car together. Pay less.</h1>
+                    <p class="lead">Join a buying group. More members mean better dealer offers, and you vote on the one you like.</p>
+                    <div class="hero-cta">
+                        <a class="btn lime" href="${URLS.available}">Find a group</a>
+                        <a class="btn ghost" href="${CARS_URL}">Explore cars</a>
+                    </div>
+                </div></div>`;
+            return;
+        }
+
+        const g = mine.slice().sort((a, b) => rank(a) - rank(b))[0];
+        const car = g.car || {};
+        const carName = `${car.brand || ""} ${car.model || ""}`.trim();
+        const target = Number(g.target_members) || 1, members = Number(g.member_count) || 0;
+        const left = Math.max(0, target - members);
+        const closed = g.status === "Closed";
+        const copy = journeyCopy(g);
+        const offersHref = `/customer/groups/${Number(g.id)}/offers`;
+
+        let cta;
+        if (g.my_status === "pending") {
+            cta = `<a class="btn ghost" href="${URLS.myGroups}">See my deals</a>`;
+        } else if (copy.offers) {
+            cta = `<a class="btn lime" href="${offersHref}">Review &amp; vote</a><a class="btn ghost" href="${URLS.myGroups}">All my deals</a>`;
+        } else if (closed || g.deal_status) {
+            cta = `<a class="btn lime" href="${offersHref}">View my deal</a>`;
+        } else {
+            const text = `Join our Zivo group "${g.group_name}" for ${carName || "a new vehicle"}. Only ${left} ${left === 1 ? "seat" : "seats"} left! Register free and join here: ${location.origin}/register`;
+            cta = (left > 0 ? `<a class="btn lime" href="https://wa.me/?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">Invite friends on WhatsApp</a>` : "")
+                + `<a class="btn ghost" href="${offersHref}">View offers</a>`;
+        }
+
+        const more = mine.length > 1
+            ? `<a class="hero-more" href="${URLS.myGroups}">You're in ${mine.length} groups · See all deals →</a>` : "";
+
+        box.innerHTML = `<div class="hero-in on-dark next-rise">
+            <div class="hero-top">
+                <p class="eyebrow">Your next step</p>
+                <p class="who">${escapeHTML(g.group_name)}${carName ? " · " + escapeHTML(carName) : ""}</p>
+            </div>
+            <div class="hero-car">${seatMapHTML(members, target, { you: members > 0 ? 0 : -1, name: g.group_name })}</div>
+            <div class="hero-text">
+                <h1>${escapeHTML(copy.title)}</h1>
+                <p class="lead">${escapeHTML(copy.sub)}</p>
+                ${trackerHTML(STAGES.journey, journeyIndex(g))}
+                <div class="hero-cta">${cta}</div>
+                ${more}
+            </div></div>`;
+    };
+
+    window.renderNextStepError = function (message) {
+        const box = byId("nextStep");
+        if (!box) return;
+        box.classList.add("is-error");
+        box.setAttribute("aria-busy", "false");
+        box.innerHTML = `<div role="alert">
+            <p class="eyebrow">Couldn't load</p>
+            <h1>We couldn't load your deals</h1>
+            <p class="lead">${escapeHTML(message)}</p>
+            <div class="hero-cta"><button type="button" class="btn" data-retry="loadHomeStats">Try again</button></div>
+        </div>`;
+    };
+})();
+</script>
+{% endblock %}
