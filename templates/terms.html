@@ -1,0 +1,62 @@
+{% extends "legal_base.html" %}
+{% set page = 'terms' %}
+{% block title %}Terms &amp; Conditions{% endblock %}
+{% block heading %}Terms &amp; Conditions{% endblock %}
+{% block content %}
+<p>Please read these terms before using {{ site.name }}. By creating an account or using the site you agree to them. If you do not agree, please do not use {{ site.name }}.</p>
+
+<h2>1. Who can use {{ site.name }}</h2>
+<p>You must be 18 or older and give true details when you register. You are responsible for your account and password.</p>
+
+<h2>2. What {{ site.name }} is</h2>
+<p>{{ site.name }} is a platform that connects vehicle buyers with dealers and partners. We are not a vehicle dealer, bank, lender or insurance company. Your purchase, loan or policy is a contract between you and that dealer or partner.</p>
+
+<h2>3. Groups and seats</h2>
+<ul>
+  <li>Joining a group reserves a seat for you.</li>
+  <li>A new seat is held for {{ hold_hours }} hours while our team verifies it. If it is not verified in that time, or we reject it, the seat is released.</li>
+  <li>A group may be closed, merged or cancelled if there are not enough buyers or if no suitable offer arrives.</li>
+  <li>Joining a group and voting does not force you to buy. Your purchase is final only when you confirm it with the dealer.</li>
+</ul>
+
+<h2>4. Offers, prices and delivery</h2>
+<p>Prices, delivery times and benefits shown on {{ site.name }} come from dealers and may change. Taxes, registration, insurance, accessories and other charges may apply. The final price is the one on the dealer's invoice. Photos and specifications are for guidance only.</p>
+
+<h2>5. EMI, loan, insurance and other services</h2>
+<p>The EMI calculator gives an estimate, not a loan offer. Loan approval, interest rate and terms are decided by the lender. The same applies to insurance quotes, used-vehicle prices and consultation advice, which depend on the partner and your details.</p>
+
+<h2>6. Commission</h2>
+<p>{{ site.name }} may receive a commission from dealers or partners when a deal is completed. Please check the final amount with your dealer before paying.</p>
+
+<h2>7. Reviews</h2>
+<p>Your review must be honest and about your own experience. You allow {{ site.name }} to display approved reviews on the site. We may hide reviews that are false, abusive or contain contact details.</p>
+
+<h2>8. Ads and third-party links</h2>
+<p>{{ site.name }} shows ads and links to other websites. We do not control them and are not responsible for their content, products or offers.</p>
+
+<h2>9. What you must not do</h2>
+<ul>
+  <li>Give false information or use another person's identity.</li>
+  <li>Join groups you do not plan to buy from, or misuse offers and votes.</li>
+  <li>Try to hack, copy or overload the site.</li>
+  <li>Post abusive, illegal or misleading content.</li>
+</ul>
+<p>We may suspend or delete accounts that break these rules.</p>
+
+<h2>10. Our content</h2>
+<p>The {{ site.name }} name, logo, design and content belong to us. See our <a href="{{ url_for('copyright_page') }}">Copyright page</a>.</p>
+
+<h2>11. Limits of our responsibility</h2>
+<p>We work to keep {{ site.name }} accurate and available, but we do not guarantee uninterrupted service or that every deal will be completed. To the extent allowed by law, {{ site.name }} is not liable for losses from dealer or partner actions, price changes, delays or unavailable vehicles.</p>
+
+<h2>12. Governing law</h2>
+<p>These terms follow the laws of India. Any dispute will be handled by the courts at {{ site.jurisdiction }}.</p>
+
+<h2>13. Changes</h2>
+<p>We may update these terms. The date at the top shows the latest version. Continued use means you accept them.</p>
+
+<h2>14. Contact us</h2>
+<p>Email: <a href="mailto:{{ site.email }}">{{ site.email }}</a> &middot;
+<a href="https://wa.me/{{ site.whatsapp_number }}" target="_blank" rel="noopener">WhatsApp</a> &middot;
+<a href="{{ site.instagram_url }}" target="_blank" rel="noopener">Instagram</a></p>
+{% endblock %}

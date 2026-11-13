@@ -6,14 +6,14 @@
 {% block head_extra %}
 <style>
 /* Everything else (toolbar, chips, car cards, compare tray, popups) already lives in base.html and
-   follows the dark/light theme. Only these small page-level touches are needed. */
+   follows the dark/light theme. This block restyles the cards and makes the page work well on phones. */
 .search-box input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; display: none; }
 .cmp-tray { bottom: calc(var(--dock-h) + 24px + env(safe-area-inset-bottom)); }
 .car-card .interest-btn.is-loading::after { border-top-color: #101114; }
 
 /* vehicle type tabs (All / Car / Bike ...) are normal links that reload the page with ?type= */
 .type-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
-.type-tabs a.chip { text-decoration: none; display: inline-flex; align-items: center; }
+.type-tabs a.chip { text-decoration: none; display: inline-flex; align-items: center; flex: none; white-space: nowrap; min-height: 40px; }
 
 /* smooth popups: fade the backdrop in and out, slide the sheet out the same way it came in */
 .modal-backdrop { opacity: 0; transition: opacity var(--d-med); }
@@ -23,14 +23,128 @@
 @keyframes popout { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(18px) scale(.97); } }
 .modal.closing { pointer-events: none; }
 .modal-sheet { overscroll-behavior: contain; }
-.car-card, .cmp-toggle, .modal-x { touch-action: manipulation; }
+.car-card, .cmp-toggle, .modal-x { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 
 /* showroom price on the card and in the details popup */
-.car-price { margin: 2px 0 10px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.car-price { margin: 0; font-size: 12px; color: var(--muted); font-weight: 600; }
 .car-price b { display: block; font-size: 20px; letter-spacing: -.03em; color: var(--ink); font-variant-numeric: tabular-nums; }
 .car-price:empty { display: none; }
 .m-price { margin: 4px 0 12px; font-size: 13px; color: var(--muted); font-weight: 600; }
 .m-price b { display: block; font-size: 24px; letter-spacing: -.03em; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* ================= new look: photo-first cards ================= */
+/* brands stack top to bottom; inside each brand the vehicles scroll sideways */
+.car-grid { display: flex; flex-direction: column; gap: 26px; min-width: 0; }
+.brand-group { min-width: 0; }
+/* a bold accent bar in front of each brand name gives the page some colour in light mode */
+.brand-head h2::before { content: ""; width: 5px; height: 22px; border-radius: 3px; background: linear-gradient(180deg, #6e82ff, #3cb371); flex: none; }
+.brand-more { background: var(--card); box-shadow: 0 1px 2px rgba(16,17,20,.08); }
+.brand-group.hide { display: none; }
+.brand-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 12px; }
+.brand-head h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -.03em; display: flex; align-items: center; gap: 8px; }
+.brand-count { font-size: 12px; font-weight: 700; min-width: 24px; height: 24px; padding: 0 8px; display: inline-grid; place-items: center; border-radius: var(--r-pill); background: var(--bg-2); border: 1px solid var(--line); color: var(--muted); }
+.brand-more { min-height: 40px; padding: 6px 14px; border: 1px solid var(--line-2, var(--line)); border-radius: var(--r-pill); color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; touch-action: manipulation; }
+.brand-row { display: flex; gap: 14px; overflow-x: auto; padding: 4px 2px 10px; scroll-snap-type: x proximity; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.brand-row > .car-card { flex: 0 0 260px; scroll-snap-align: start; }
+/* "See all" turns that brand's row into a normal wrapping grid */
+.brand-group.expanded .brand-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); overflow: visible; scroll-snap-type: none; }
+.brand-group.expanded .brand-row > .car-card { flex: none; width: auto; }
+
+.car-card { position: relative; display: flex; flex-direction: column; overflow: hidden; min-width: 0; border-radius: 22px; background: var(--card); border: 1px solid var(--line-2, var(--line)); box-shadow: 0 1px 2px rgba(16,17,20,.06), 0 10px 26px -12px rgba(16,17,20,.22); transition: transform var(--d-med) var(--ease), box-shadow var(--d-med), border-color var(--d-med); }
+.car-card.hide { display: none; }
+.car-card.selected { border-color: var(--lime); box-shadow: 0 0 0 3px rgba(215,255,63,.28); }
+@media (hover: hover) { .car-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-2); } }
+
+.car-card .car-image,
+.car-card .car-placeholder { display: block; width: 100%; height: 150px; max-height: 150px; aspect-ratio: auto; object-fit: cover; background: linear-gradient(135deg, rgba(110,130,255,.16), rgba(215,255,63,.22)); cursor: pointer; }
+.car-card .car-placeholder { display: grid; place-items: center; font-size: 44px; }
+.m-img { max-height: 260px; object-fit: cover; }
+
+/* compare button floats on the photo */
+.cmp-toggle { position: absolute; top: 10px; left: 10px; z-index: 2; min-height: 36px; padding: 6px 12px; border: 0; border-radius: var(--r-pill); background: rgba(16,17,20,.68); color: #fff; font-size: 12.5px; font-weight: 600; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); cursor: pointer; }
+.cmp-toggle.on { background: var(--lime); color: #101114; }
+
+.car-content { display: flex; flex-direction: column; gap: 8px; flex: 1; padding: 14px 16px 16px; min-width: 0; }
+.car-content h3 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -.02em; line-height: 1.25; overflow-wrap: anywhere; cursor: pointer; }
+.car-variant { margin: 0; font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.car-variant b { font-weight: 600; }
+.car-spec { display: flex; flex-wrap: wrap; gap: 6px; }
+.car-spec span { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: var(--r-pill); background: rgba(110,130,255,.14); border: 1px solid rgba(110,130,255,.28); }
+.car-spec span.fuel { background: rgba(60,170,100,.16); border-color: rgba(60,170,100,.34); }
+.card-actions { margin-top: auto; padding-top: 6px; display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; }
+.card-actions .btn { min-height: 46px; padding: 10px 12px; font-size: 14px; }
+
+/* ================= toolbar / filters ================= */
+.toolbar { display: grid; gap: 12px; margin-bottom: 14px; min-width: 0; }
+.search-box input { font-size: 16px; }   /* 16px stops iOS from zooming the page on tap */
+.filter-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.filter-row .lbl { flex: none; }
+.filter-row .chip { flex: none; white-space: nowrap; min-height: 40px; }
+.result-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+.reset-btn { min-height: 40px; }
+
+/* compare tray + table */
+.cmp-items { min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.cmp-items::-webkit-scrollbar { display: none; }
+.cmp-chip { flex: none; max-width: 70vw; white-space: nowrap; }
+.cmp-chip button { min-width: 32px; min-height: 32px; }
+.cmp-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+.cmp-table { min-width: calc(110px + var(--n, 2) * 150px); }
+.cmp-table tbody th[scope=row], .cmp-table thead th:first-child { position: sticky; left: 0; z-index: 1; background: var(--card); }
+.cmp-table img { max-width: 100%; height: auto; }
+.modal-x { min-width: 44px; min-height: 44px; }
+body.tray-on .car-grid { padding-bottom: 120px; }
+
+/* ================= tablets ================= */
+@media (max-width: 900px) {
+    .brand-row > .car-card { flex-basis: 240px; }
+}
+
+/* ================= phones ================= */
+@media (max-width: 600px) {
+    .page-intro { font-size: 14px; line-height: 1.5; margin-bottom: 14px; }
+
+    /* type tabs + filters become one-line swipe rows */
+    .type-tabs, .filter-row { flex-wrap: nowrap; overflow-x: auto; margin-left: -18px; margin-right: -18px; padding: 2px 18px 4px; scrollbar-width: none; overscroll-behavior-x: contain; }
+    .type-tabs::-webkit-scrollbar, .filter-row::-webkit-scrollbar { display: none; }
+
+    /* each brand is a swipe row; cards are about 3/4 of the screen wide so the next one peeks in */
+    .car-grid { gap: 22px; }
+    .brand-head h2 { font-size: 18px; }
+    .brand-row { margin: 0 -18px; padding: 4px 18px 10px; scroll-padding-left: 18px; gap: 12px; scrollbar-width: none; }
+    .brand-row::-webkit-scrollbar { display: none; }
+    .brand-row > .car-card { flex: 0 0 min(74vw, 280px); }
+    .car-card .car-image,
+    .car-card .car-placeholder { height: 140px; max-height: 140px; object-fit: contain; }
+    .car-content { padding: 12px 14px 14px; }
+    .car-price b { font-size: 18px; }
+    .cmp-toggle { top: 10px; left: 10px; min-height: 32px; padding: 4px 10px; font-size: 12px; }
+    .brand-group.expanded .brand-row { grid-template-columns: minmax(0, 1fr); margin: 0; padding: 4px 0 10px; }
+
+    /* popups slide up from the bottom like a phone sheet */
+    .modal { align-items: flex-end; }
+    .modal-sheet, .modal-sheet.wide { width: 100%; max-width: none; margin: 0; max-height: 92vh; max-height: 92dvh; overflow-y: auto; border-radius: 26px 26px 0 0; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+    .modal.closing .modal-sheet { animation-name: popout-m; }
+    @keyframes popout-m { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(40px); } }
+    .m-actions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+    .m-actions .btn { width: 100%; min-height: 48px; }
+    .m-media img, .m-img { width: 100%; max-height: 180px; object-fit: cover; }
+    .cmp-title { font-size: 20px; padding-right: 44px; }
+    .cmp-table { min-width: calc(96px + var(--n, 2) * 140px); font-size: 13px; }
+
+    /* tray: one row, chips scroll sideways */
+    .cmp-tray { gap: 8px; padding: 10px 12px; }
+    .cmp-count { display: none; }
+    .cmp-tray .btn { min-height: 44px; padding: 10px 16px; }
+}
+
+@media (max-width: 380px) {
+    .brand-row > .car-card { flex-basis: 78vw; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .car-card, .modal-backdrop, .modal-sheet { transition: none !important; animation: none !important; }
+}
 </style>
 {% endblock %}
 
@@ -100,7 +214,14 @@
 {# data-interested carries the saved interest ids as JSON, so the script below needs no Jinja inside it #}
 <div class="car-grid" id="carGrid" data-interested='{{ (interested_ids or [])|list|tojson }}'>
     {% if cars %}
-        {% for car in cars %}
+        {% for brand, brand_cars in cars|groupby('brand') %}
+        <section class="brand-group" data-brand="{{ brand|lower }}">
+            <div class="brand-head">
+                <h2>{{ brand }} <span class="brand-count">{{ brand_cars|length }}</span></h2>
+                <button type="button" class="brand-more" aria-expanded="false">See all</button>
+            </div>
+            <div class="brand-row">
+        {% for car in brand_cars %}
         {% set is_int = car.id in interested_ids %}
         {% set vtype = car.vehicle_type or 'Car' %}
         {% set vicon = icons.get(vtype, '🚘') %}
@@ -148,6 +269,9 @@
                 </div>
             </div>
         </div>
+        {% endfor %}
+            </div>
+        </section>
         {% endfor %}
 
         <div class="empty-state" id="noMatch" style="display:none">
@@ -522,6 +646,14 @@
             if (ok) count++;
         });
 
+        /* hide a brand when none of its vehicles match, and keep its count right */
+        grid.querySelectorAll(".brand-group").forEach(g => {
+            const n = g.querySelectorAll(".car-card:not(.hide)").length;
+            g.classList.toggle("hide", !n);
+            const c = g.querySelector(".brand-count");
+            if (c) c.textContent = n;
+        });
+
         shown.textContent = count;
         noMatch.style.display = count ? "none" : "block";
         clearBtn.style.display = search.value ? "block" : "none";
@@ -542,6 +674,16 @@
         document.querySelectorAll(".filter-row").forEach(row => setChip(row, row.querySelector(".chip")));
         apply();
     }
+
+    /* "See all" / "Show less": switch one brand between the sideways row and a full grid */
+    grid.addEventListener("click", e => {
+        const more = e.target.closest(".brand-more");
+        if (!more) return;
+        const g = more.closest(".brand-group");
+        const on = g.classList.toggle("expanded");
+        more.textContent = on ? "Show less" : "See all";
+        more.setAttribute("aria-expanded", String(on));
+    });
 
     search.addEventListener("input", apply);
     clearBtn.addEventListener("click", () => { search.value = ""; apply(); search.focus(); });

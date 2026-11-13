@@ -1,0 +1,31 @@
+{% extends "legal_base.html" %}
+{% set page = 'about' %}
+{% block title %}About{% endblock %}
+{% block heading %}About {{ site.name }}{% endblock %}
+{% block updated %}<p class="updated">Buy a vehicle together. Pay less.</p>{% endblock %}
+{% block content %}
+<h2>What we do</h2>
+<p>{{ site.name }} brings vehicle buyers together. When enough people want the same car, bike or scooter, they form a group, and dealers compete to give that group their best price. A bigger group means a stronger offer.</p>
+
+<h2>How it works</h2>
+<ul>
+  <li><b>Pick a vehicle.</b> Browse cars, bikes, scooters and electric scooters, and show your interest.</li>
+  <li><b>Join a group.</b> Reserve your seat in a group of buyers in your city.</li>
+  <li><b>Compare dealer offers.</b> Dealers send offers for the whole group. You see the price and delivery time and vote for the offer you like.</li>
+  <li><b>We follow the deal.</b> Once an offer is confirmed, we track it through contact, booking and delivery.</li>
+</ul>
+
+<h2>More than just the deal</h2>
+<p>Use our EMI calculator and loan help, get insurance quotes, sell your used vehicle, or book a one-to-one consultation with our team before you decide.</p>
+
+<h2>What we stand for</h2>
+<ul>
+  <li><b>Fair prices:</b> Dealers compete for your group, so you do not have to bargain alone.</li>
+  <li><b>Your privacy:</b> Dealer names and your contact details are not shown to the public.</li>
+  <li><b>Honest reviews:</b> Reviews are shown publicly only when the customer allows it and our team approves them.</li>
+</ul>
+
+<div class="note">Have a question? Message us on
+  <a href="https://wa.me/{{ site.whatsapp_number }}" target="_blank" rel="noopener">WhatsApp</a> or find us on
+  <a href="{{ site.instagram_url }}" target="_blank" rel="noopener">Instagram</a>.</div>
+{% endblock %}

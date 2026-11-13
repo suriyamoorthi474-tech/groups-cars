@@ -1,0 +1,63 @@
+{# Zivo footer + WhatsApp help button. Used by the landing page and the legal pages.
+   Needs the page's design tokens (--card, --line, --ink ...) and the .foot/.brand/.tagline/.copy styles. #}
+<style>
+.foot-cols { display: flex; gap: 56px; flex-wrap: wrap; }
+.foot-col h4 { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 4px; letter-spacing: .02em; }
+.foot-col a { display: flex; align-items: center; min-height: 40px; color: var(--ink-2); text-decoration: none; font-weight: 600; font-size: 14.5px; }
+.foot-col a:hover { color: var(--acc-text); }
+.social { display: flex; gap: 10px; margin-top: 18px; }
+.soc { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--ink); transition: border-color var(--d-fast), transform var(--d-fast) var(--ease); }
+.soc:hover { border-color: var(--ink); transform: translateY(-2px); }
+.soc svg, .wa-float svg { fill: currentColor; }
+.soc svg { width: 20px; height: 20px; }
+.wa-float { position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 90; width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%; background: #25D366; color: #fff; box-shadow: var(--shadow-2); transition: transform var(--d-fast) var(--ease); }
+.wa-float:hover { transform: scale(1.06); }
+.wa-float svg { width: 31px; height: 31px; }
+</style>
+
+<footer>
+    <div class="wrap">
+        <div class="foot">
+            <div>
+                <a href="{{ url_for('home') }}" class="brand" aria-label="{{ site.name }} home">
+                    <svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="5" r="2.2"/><circle cx="12" cy="5" r="2.2"/><circle cx="19" cy="5" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="12" cy="19" r="2.2"/><circle class="on" cx="19" cy="19" r="2.2"/></svg>
+                    <span class="wm"><span>zi</span><b>vo</b></span>
+                </a>
+                <p class="tagline">More Buyers. Better Deals.</p>
+                <div class="social">
+                    <a class="soc" href="{{ site.instagram_url }}" target="_blank" rel="noopener" aria-label="{{ site.name }} on Instagram">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.2" cy="6.8" r="1.2"/></svg>
+                    </a>
+                    <a class="soc" href="https://wa.me/{{ site.whatsapp_number }}?text={{ site.whatsapp_message|urlencode }}" target="_blank" rel="noopener" aria-label="Chat with {{ site.name }} on WhatsApp">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5a9.5 9.5 0 0 0-8.2 14.3L2.5 21.5l4.8-1.2A9.5 9.5 0 1 0 12 2.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path transform="translate(6.3 6.3) scale(.5)" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="foot-cols">
+                <nav class="foot-col" aria-label="Explore">
+                    <h4>Explore</h4>
+                    <a href="{{ url_for('home') }}#rides">Vehicles</a>
+                    <a href="{{ url_for('home') }}#how">How It Works</a>
+                    <a href="{{ url_for('home') }}#why">Why Us</a>
+                    {% if testimonials %}<a href="{{ url_for('home') }}#reviews">Reviews</a>{% endif %}
+                    <a href="/login">Login</a>
+                    <a href="/register">Register</a>
+                </nav>
+                <nav class="foot-col" aria-label="Company">
+                    <h4>Company</h4>
+                    <a href="{{ url_for('about_page') }}">About {{ site.name }}</a>
+                    <a href="{{ url_for('privacy_page') }}">Privacy Policy</a>
+                    <a href="{{ url_for('terms_page') }}">Terms &amp; Conditions</a>
+                    <a href="{{ url_for('copyright_page') }}">Copyright</a>
+                    {% if site.email %}<a href="mailto:{{ site.email }}">{{ site.email }}</a>{% endif %}
+                </nav>
+            </div>
+        </div>
+        <p class="copy">© {{ current_year }} {{ site.name }}. All Rights Reserved.</p>
+    </div>
+</footer>
+
+<a class="wa-float" href="https://wa.me/{{ site.whatsapp_number }}?text={{ site.whatsapp_message|urlencode }}" target="_blank" rel="noopener" aria-label="Need help? Chat on WhatsApp" title="Need help? Chat on WhatsApp">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5a9.5 9.5 0 0 0-8.2 14.3L2.5 21.5l4.8-1.2A9.5 9.5 0 1 0 12 2.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path transform="translate(6.3 6.3) scale(.5)" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+</a>

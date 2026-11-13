@@ -5364,6 +5364,54 @@ def debug_reviews():
 
 
 # --------------------------------
+# SITE INFO + ABOUT / LEGAL PAGES
+# Change the values in SITE_INFO (marked CHANGE THIS) and you are done.
+# --------------------------------
+
+SITE_INFO = {
+    "name": "Zivo",
+    "tagline": "Buy your vehicle together and save more.",
+    "email": "support@zivo.in",                          # CHANGE THIS
+    "whatsapp_number": "916383750156",                   # CHANGE THIS (91 + 10 digit number, no + or spaces)
+    "whatsapp_message": "Hi Zivo, I need some help.",
+    "instagram_url": "https://www.instagram.com/zivo",   # CHANGE THIS
+    "instagram_handle": "@zivo",                         # CHANGE THIS
+    "jurisdiction": "Chennai, Tamil Nadu",               # CHANGE THIS (city for legal disputes)
+    "legal_updated": "13 November 2026",
+}
+
+
+@app.context_processor
+def inject_site_info():
+    """Makes {{ site }} and {{ current_year }} available in every template."""
+
+    return {
+        "site": SITE_INFO,
+        "current_year": datetime.now(IST).year
+    }
+
+
+@app.route("/about")
+def about_page():
+    return render_template("about.html")
+
+
+@app.route("/privacy")
+def privacy_page():
+    return render_template("privacy.html")
+
+
+@app.route("/terms")
+def terms_page():
+    return render_template("terms.html", hold_hours=HOLD_HOURS)
+
+
+@app.route("/copyright")
+def copyright_page():
+    return render_template("copyright.html")
+
+
+# --------------------------------
 # HEALTH CHECK
 # --------------------------------
 

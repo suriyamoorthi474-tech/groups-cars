@@ -5,36 +5,59 @@
 
 {% block head_extra %}
 <style>
-.pf-wrap { display: grid; gap: 14px; max-width: 640px; }
+.pf-wrap { display: grid; gap: 14px; max-width: 920px; min-width: 0; padding-bottom: calc(var(--dock-h, 0px) + 20px); }
+.pf-wrap > * { min-width: 0; }
+.pf-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-/* ---------- header card: who you are + quick numbers ---------- */
-.pf-head { display: grid; gap: 18px; }
-.pf-me { display: flex; align-items: center; gap: 16px; }
-.pf-avatar { width: 64px; height: 64px; flex: none; border-radius: 50%; background: var(--acc); color: #fff; display: grid; place-items: center; font-size: 26px; font-weight: 700; }
+/* ---------- header card: colour band + quick numbers ---------- */
+.pf-head { padding: 0; overflow: hidden; }
+.pf-hero { display: flex; align-items: center; gap: 16px; padding: 22px 18px; background: linear-gradient(135deg, #4f63e8, #2fa36b); color: #fff; }
+.pf-avatar { width: 64px; height: 64px; flex: none; border-radius: 50%; background: rgba(255,255,255,.22); border: 2px solid rgba(255,255,255,.55); color: #fff; display: grid; place-items: center; font-size: 26px; font-weight: 700; }
 .pf-me-text { min-width: 0; display: grid; gap: 2px; }
-.pf-me b { display: block; font-size: 20px; letter-spacing: -.03em; line-height: 1.15; overflow-wrap: anywhere; }
-.pf-me span { display: block; color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
-.pf-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.pf-me-text b { display: block; font-size: 20px; letter-spacing: -.03em; line-height: 1.15; overflow-wrap: anywhere; }
+.pf-me-text span { display: block; color: rgba(255,255,255,.88); font-size: 14px; overflow-wrap: anywhere; }
+.pf-stats { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.35fr); gap: 8px; padding: 14px 16px 16px; }
 .pf-stat { background: var(--bg-2); border: 1px solid var(--line); border-radius: 18px; padding: 12px 10px; text-align: center; min-width: 0; }
 .pf-stat b { display: block; font-size: 20px; font-weight: 700; letter-spacing: -.03em; line-height: 1.1; overflow-wrap: anywhere; }
 .pf-stat span { display: block; margin-top: 4px; font-size: 11.5px; font-weight: 600; color: var(--muted); }
+.pf-stat.save { background: var(--success-soft); border-color: var(--success); }
+.pf-stat.save b { color: var(--success); font-size: 22px; }
 
 /* ---------- section headings ---------- */
 .pf-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 2px 0; font-size: 14px; font-weight: 700; letter-spacing: .02em; color: var(--muted); }
 .pf-title em { font-style: normal; font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: var(--r-pill); background: var(--card-2); color: var(--ink); }
+.pf-sub { margin: 4px 2px 0; font-size: 12.5px; font-weight: 700; letter-spacing: .02em; color: var(--muted); }
 
-/* ---------- free services ---------- */
-.pf-links { display: grid; gap: 10px; }
-.pf-links a { display: flex; align-items: center; gap: 14px; min-height: 68px; padding: 12px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 24px; text-decoration: none; transition: border-color var(--d-med), transform var(--d-fast) var(--ease); }
+/* ---------- free services: icon tiles (2 per row on phones, 4 on tablets and up) ---------- */
+.pf-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pf-links a { display: grid; justify-items: center; align-content: center; gap: 8px; min-height: 104px; padding: 14px 8px; text-align: center; background: var(--card); border: 1px solid var(--line-2, var(--line)); border-radius: 22px; text-decoration: none; color: inherit; box-shadow: 0 1px 2px rgba(16,17,20,.06), 0 10px 24px -14px rgba(16,17,20,.22); transition: border-color var(--d-med), transform var(--d-fast) var(--ease); touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .pf-links a:hover { border-color: var(--ink); }
-.pf-links a:active { transform: scale(.98); }
-.pf-ic { width: 44px; height: 44px; flex: none; border-radius: 50%; background: var(--acc-soft); display: grid; place-items: center; }
-.pf-links a:nth-child(2) .pf-ic { background: var(--success-soft); }
+.pf-links a:active { transform: scale(.97); }
+.pf-ic { width: 46px; height: 46px; border-radius: 50%; background: rgba(110,130,255,.16); display: grid; place-items: center; }
+.pf-links a:nth-child(2) .pf-ic { background: rgba(60,170,100,.18); }
+.pf-links a:nth-child(3) .pf-ic { background: rgba(245,179,1,.2); }
+.pf-links a:nth-child(4) .pf-ic { background: rgba(236,100,120,.16); }
 .pf-ic svg { width: 22px; height: 22px; stroke: var(--ink); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.pf-links strong { display: block; font-size: 16px; letter-spacing: -.02em; }
-.pf-links small { display: block; color: var(--muted); font-size: 13px; }
-.pf-go { margin-left: auto; width: 34px; height: 34px; flex: none; border-radius: 50%; background: var(--bg-2); display: grid; place-items: center; font-weight: 700; transition: transform var(--d-med) var(--ease), background var(--d-med), color var(--d-med); }
-.pf-links a:hover .pf-go { transform: translateX(4px); background: var(--ink); color: var(--bg); }
+.pf-links strong { display: block; font-size: 14px; letter-spacing: -.01em; line-height: 1.2; }
+.pf-links small { display: none; color: var(--muted); font-size: 12.5px; line-height: 1.35; }
+
+/* ---------- my car loan: live status (dark card, same data as the EMI page) ---------- */
+.pf-loan { display: grid; gap: 12px; padding: 16px; background: var(--panel); color: var(--on-panel); border: 1px solid rgba(255,255,255,.1); border-radius: 22px; transition: border-color var(--d-med), transform var(--d-fast) var(--ease); touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.pf-loan:empty { display: none; }
+.pf-loan.ok { border-color: var(--lime); box-shadow: 0 0 0 3px rgba(215,255,63,.22); }
+.pf-loan-top { display: flex; align-items: center; gap: 12px; }
+.pf-loan-ic { width: 40px; height: 40px; flex: none; border-radius: 50%; background: rgba(215,255,63,.16); display: grid; place-items: center; }
+.pf-loan-ic svg { width: 20px; height: 20px; stroke: var(--lime); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.pf-loan-text { flex: 1; min-width: 0; }
+.pf-loan-text small { display: block; color: #b5b7c2; font-size: 12px; font-weight: 600; }
+.pf-loan-text b { display: block; font-size: 17px; font-weight: 700; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.pf-loan.ok .pf-loan-text b { color: var(--lime); }
+.pf-loan p { font-size: 13.5px; line-height: 1.45; color: #c3c5cf; overflow-wrap: anywhere; }
+.pf-loan p b { color: #fff; }
+.pf-loan .pf-prog { margin-top: 0; }
+.pf-loan .pf-prog-top span { color: #b5b7c2; }
+.pf-loan .pf-steps li { background: rgba(255,255,255,.18); }
+.pf-loan .pf-steps li.on { background: var(--lime); }
 
 /* ---------- account (city + logout) ---------- */
 .pf-account { padding: 6px 18px; display: grid; }
@@ -45,58 +68,128 @@
 .pf-row-text { flex: 1; min-width: 0; }
 .pf-row-text small { display: block; color: var(--muted); font-size: 12px; font-weight: 600; }
 .pf-row-text b { display: block; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
-.pf-row .btn { min-height: 40px; padding: 8px 16px; font-size: 13.5px; flex: none; }
-.pf-row form { margin: 0; flex: none; }
+.pf-row .btn { min-height: 44px; padding: 8px 16px; font-size: 13.5px; flex: none; }
 .pf-row.out .pf-row-ic { background: var(--danger-soft); }
 .pf-row.out .pf-row-ic svg { stroke: var(--danger); }
 .pf-row.out .btn { color: var(--danger); box-shadow: inset 0 0 0 1.5px var(--danger); }
 
 /* ---------- my purchases ---------- */
-.pf-buys { display: grid; gap: 14px; }
-.pf-buy { display: block; text-decoration: none; color: inherit; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 16px; transition: border-color var(--d-med), transform var(--d-fast) var(--ease); }
+.pf-buys { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.pf-item { display: grid; gap: 8px; min-width: 0; }
+.pf-buy { display: block; text-decoration: none; color: inherit; background: var(--card); border: 1px solid var(--line-2, var(--line)); border-radius: 24px; padding: 16px; box-shadow: 0 1px 2px rgba(16,17,20,.06), 0 10px 26px -14px rgba(16,17,20,.22); transition: border-color var(--d-med), transform var(--d-fast) var(--ease); -webkit-tap-highlight-color: transparent; }
 .pf-buy:hover { border-color: var(--ink); }
 .pf-buy:active { transform: scale(.99); }
 .pf-buy.done { border-color: var(--success); background: var(--success-soft); }
 .pf-buy-top { display: flex; gap: 14px; align-items: center; }
-.pf-buy-img { width: 72px; height: 54px; flex: none; border-radius: 14px; background: var(--bg-2) center/cover no-repeat; }
+.pf-buy-img { width: 88px; height: 66px; flex: none; border-radius: 14px; background: var(--bg-2) center/cover no-repeat; }
 .pf-buy-info { min-width: 0; flex: 1; }
 .pf-buy-info b { display: block; font-size: 16px; letter-spacing: -.02em; overflow-wrap: anywhere; }
 .pf-buy-info small { display: block; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
 .pf-tag { flex: none; font-size: var(--t-xs); font-weight: 700; padding: 4px 12px; border-radius: var(--r-pill); background: var(--warning-soft); color: var(--warning); white-space: nowrap; }
-.pf-buy.done .pf-tag { background: var(--success); color: #07210f; }
+.pf-buy.done .pf-tag, .pf-old.done .pf-tag { background: var(--success); color: #07210f; }
 .pf-buy-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
 .pf-fact { background: var(--bg-2); border: 1px solid var(--line); border-radius: 16px; padding: 10px 12px; min-width: 0; }
 .pf-fact span { display: block; font-size: var(--t-xs); font-weight: 600; color: var(--muted); }
 .pf-fact b { display: block; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
-.pf-item { display: grid; gap: 8px; }
-.pf-rate { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 14px 16px; }
+.pf-save { margin-top: 12px; font-size: 13px; font-weight: 700; color: var(--success); }
+
+/* progress: "Step 2 of 4 · Payment" + a segmented bar */
+.pf-prog { margin-top: 14px; }
+.pf-prog-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 13px; }
+.pf-prog-top b { font-weight: 700; }
+.pf-prog-top span { color: var(--muted); font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+.pf-steps { list-style: none; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; margin: 8px 0 0; padding: 0; }
+.pf-steps li { height: 7px; border-radius: 7px; background: var(--track); }
+.pf-steps li.on { background: var(--success); }
+
+/* earlier purchases fold into one-line rows */
+.pf-old { background: var(--card); border: 1px solid var(--line-2, var(--line)); border-radius: 22px; overflow: hidden; min-width: 0; }
+.pf-old > summary { display: flex; align-items: center; gap: 12px; min-height: 68px; padding: 10px 14px; cursor: pointer; list-style: none; touch-action: manipulation; }
+.pf-old > summary::-webkit-details-marker { display: none; }
+.pf-old .pf-buy-img { width: 56px; height: 42px; border-radius: 10px; }
+.pf-old .pf-buy-info b { font-size: 15px; }
+.pf-chev { width: 28px; height: 28px; flex: none; border-radius: 50%; background: var(--bg-2); display: grid; place-items: center; font-size: 13px; transition: transform var(--d-med) var(--ease); }
+.pf-old[open] .pf-chev { transform: rotate(180deg); }
+.pf-old-body { padding: 0 10px 12px; }
+.pf-old-body .pf-buy { box-shadow: none; }
+
+/* ---------- first free service reminder ---------- */
+.pf-svc { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; background: var(--card); border: 1px solid var(--line-2, var(--line)); border-radius: 22px; padding: 12px 16px; }
+.pf-svc:empty { display: none; }
+.pf-svc-ic { width: 40px; height: 40px; flex: none; border-radius: 50%; background: var(--success-soft); display: grid; place-items: center; }
+.pf-svc-ic svg { width: 20px; height: 20px; stroke: var(--success); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.pf-svc-text { flex: 1; min-width: 0; }
+.pf-svc-text small { display: block; color: var(--muted); font-size: 12px; font-weight: 600; }
+.pf-svc-text b { display: block; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+.pf-svc-tag { flex: none; font-size: var(--t-xs); font-weight: 700; padding: 4px 12px; border-radius: var(--r-pill); white-space: nowrap; background: var(--success-soft); color: var(--success); }
+.pf-svc.soon .pf-svc-ic { background: var(--warning-soft); }
+.pf-svc.soon .pf-svc-ic svg { stroke: var(--warning); }
+.pf-svc.soon .pf-svc-tag { background: var(--warning-soft); color: var(--warning); }
+.pf-svc.late .pf-svc-ic { background: var(--danger-soft); }
+.pf-svc.late .pf-svc-ic svg { stroke: var(--danger); }
+.pf-svc.late .pf-svc-tag { background: var(--danger-soft); color: var(--danger); }
+.pf-svc-act { flex-basis: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pf-svc-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 10px 14px; border-radius: var(--r-pill); font-size: 14px; font-weight: 700; text-decoration: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.pf-svc-btn svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.pf-svc-btn.wa { background: #25d366; color: #07210f; }
+.pf-svc-btn.call { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--line-2, var(--line)); }
+.pf-svc-btn:active { transform: scale(.97); }
+.pf-svc-act.one { grid-template-columns: 1fr; }
+
+/* ---------- rating ---------- */
+.pf-rate { background: var(--card); border: 1px solid var(--line-2, var(--line)); border-radius: 22px; padding: 14px 16px; }
 .pf-rate:empty { display: none; }
 .pf-rate-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .pf-rate-top b { font-size: 15px; letter-spacing: -.02em; }
 .pf-stars { display: inline-flex; gap: 2px; }
-.pf-star { background: none; border: none; padding: 2px; font-size: 28px; line-height: 1; cursor: pointer; color: var(--line-2); min-width: 40px; min-height: 40px; }
+.pf-star { background: none; border: none; padding: 2px; font-size: 28px; line-height: 1; cursor: pointer; color: var(--line-2); min-width: 44px; min-height: 44px; touch-action: manipulation; }
 .pf-star.on { color: #f5b301; }
 .pf-static { color: #f5b301; font-size: 18px; letter-spacing: 2px; }
 .pf-rate p { margin-top: 8px; font-size: 14px; color: var(--ink-2); overflow-wrap: anywhere; }
 .pf-rate small { display: block; margin-top: 6px; color: var(--muted); font-size: 12.5px; }
-.pf-rate textarea { width: 100%; min-height: 84px; margin-top: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--field); color: var(--ink); font: inherit; resize: vertical; }
+.pf-rate textarea { width: 100%; min-height: 96px; margin-top: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--field); color: var(--ink); font: inherit; font-size: 16px; resize: vertical; }
 .pf-consent { display: flex; gap: 10px; align-items: flex-start; margin-top: 10px; font-size: 13.5px; color: var(--ink-2); line-height: 1.4; }
-.pf-consent input { margin-top: 3px; width: 18px; height: 18px; flex: none; }
-.pf-rate-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-.pf-link { background: none; border: none; color: var(--acc-text); font-weight: 700; font-size: 14px; cursor: pointer; padding: 8px 0; min-height: 40px; }
-.pf-save { margin-top: 12px; font-size: 13px; font-weight: 700; color: var(--success); }
-.pf-steps { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 14px; }
-.pf-steps li { font-size: 11.5px; font-weight: 600; color: var(--muted); text-align: center; }
-.pf-steps li::before { content: ""; display: block; height: 6px; border-radius: 6px; background: var(--track); margin-bottom: 6px; }
-.pf-steps li.on { color: var(--ink); }
-.pf-steps li.on::before { background: var(--success); }
+.pf-consent input { margin-top: 2px; width: 22px; height: 22px; flex: none; }
+.pf-rate-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; position: sticky; bottom: calc(var(--dock-h, 0px) + 8px + env(safe-area-inset-bottom)); padding: 8px 0 2px; background: var(--card); }
+.pf-rate-actions .btn { min-height: 46px; }
+.pf-link { background: none; border: none; color: var(--acc-text); font-weight: 700; font-size: 14px; cursor: pointer; padding: 8px 0; min-height: 44px; }
 .pf-empty { background: var(--card); border: 2px dashed var(--line-2); border-radius: 24px; padding: 28px 20px; text-align: center; color: var(--muted); font-size: 14px; }
 .pf-empty a { color: var(--acc-text); font-weight: 700; }
 
+/* ---------- tablets and up ---------- */
+@media (min-width: 700px) {
+    .pf-links { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .pf-links small { display: block; }
+    .pf-links a { min-height: 132px; padding: 18px 14px; }
+}
+@media (min-width: 900px) {
+    .pf-buys { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+}
+
+/* ---------- phones ---------- */
+@media (max-width: 600px) {
+    .pf-hero { padding: 20px 16px; }
+    .pf-stats { padding: 12px 12px 14px; gap: 6px; }
+    .pf-buy { padding: 14px; }
+    .pf-buy-top { align-items: flex-start; }
+    .pf-tag { font-size: 11.5px; padding: 3px 10px; }
+    .pf-buy-facts { grid-template-columns: 1fr; }
+    .pf-fact { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; }
+    .pf-fact b { text-align: right; }
+    .pf-rate { padding: 14px; }
+    .pf-rate-top { flex-wrap: nowrap; }
+    .pf-account { padding: 4px 14px; }
+    .pf-svc { padding: 12px 14px; }
+}
 @media (max-width: 380px) {
-    .pf-me { gap: 12px; }
+    .pf-hero { gap: 12px; }
     .pf-avatar { width: 56px; height: 56px; font-size: 22px; }
-    .pf-stat b { font-size: 17px; }
+    .pf-stat b, .pf-stat.save b { font-size: 16px; }
+    .pf-buy-img { width: 72px; height: 54px; }
+    .pf-star { min-width: 40px; font-size: 26px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .pf-links a, .pf-buy, .pf-chev { transition: none !important; }
 }
 </style>
 {% endblock %}
@@ -109,11 +202,75 @@
     {% if p.delivered %}{% set ns.done = ns.done + 1 %}{% endif %}
 {% endfor %}
 
+{# one purchase: the deal card plus the service reminder and rating box when delivered #}
+{% macro buy_card(p) %}
+<div class="pf-item">
+    <a class="pf-buy{% if p.delivered %} done{% endif %}" href="{{ url_for('customer_group_offers_page', group_id=p.group_id) }}">
+        <div class="pf-buy-top">
+            <div class="pf-buy-img"{% if p.car.image_url %} style="background-image:url('{{ p.car.image_url }}')"{% endif %}></div>
+            <div class="pf-buy-info">
+                <b>{{ p.car.brand }} {{ p.car.model }}</b>
+                <small>{{ p.car.variant or '' }}{% if p.car.variant %} · {% endif %}{{ p.group_name }}</small>
+            </div>
+            <span class="pf-tag">{% if p.delivered %}Delivered{% else %}{{ p.deal_status }}{% endif %}</span>
+        </div>
+
+        <div class="pf-buy-facts">
+            <div class="pf-fact"><span>Deal price</span><b>{% if p.price %}₹{{ p.price|inr }}{% else %}Pending{% endif %}</b></div>
+            <div class="pf-fact">
+                <span>{% if p.delivered %}Delivered on{% else %}Expected delivery{% endif %}</span>
+                <b>
+                    {% if p.delivered %}
+                        {{ (p.updated_at or p.completed_at or '')[:10] or 'Done' }}
+                    {% elif p.delivery_days %}
+                        Within {{ p.delivery_days }} days
+                    {% else %}
+                        Not specified
+                    {% endif %}
+                </b>
+            </div>
+        </div>
+
+        {% if p.saving %}
+        <p class="pf-save">You saved ₹{{ p.saving|inr }} vs showroom price</p>
+        {% endif %}
+
+        {% set total = deal_steps|length %}
+        <div class="pf-prog">
+            <div class="pf-prog-top">
+                <b>Step {{ [p.step + 1, total]|min }} of {{ total }}</b>
+                <span>{{ deal_steps[p.step] if p.step < total else '' }}</span>
+            </div>
+            <ol class="pf-steps" aria-label="Deal progress">
+                {% for s in deal_steps %}
+                <li{% if loop.index0 <= p.step %} class="on"{% endif %}><span class="pf-sr">{{ s }}</span></li>
+                {% endfor %}
+            </ol>
+        </div>
+    </a>
+
+    {% if p.delivered %}
+    {# first free service: date is worked out in the script below. phone = dealer phone, else the support number #}
+    <div class="pf-svc"
+         data-date="{{ (p.updated_at or p.completed_at or '')[:10] }}"
+         data-days="{{ p.first_service_days or 30 }}"
+         data-phone="{{ p.dealer_phone or support_phone or '' }}"
+         data-car="{{ p.car.brand }} {{ p.car.model }}"></div>
+
+    <div class="pf-rate" data-group="{{ p.group_id }}"
+         data-stars="{{ p.review.stars if p.review else 0 }}"
+         data-comment="{{ (p.review.comment or '') if p.review else '' }}"
+         data-consent="{{ '1' if p.review and p.review.public_consent else '0' }}"
+         data-status="{{ p.review.status if p.review else '' }}"></div>
+    {% endif %}
+</div>
+{% endmacro %}
+
 <div class="pf-wrap">
 
     <!-- ===== who you are ===== -->
     <section class="page-card pf-head">
-        <div class="pf-me">
+        <div class="pf-hero">
             <div class="pf-avatar" aria-hidden="true">{{ (customer.full_name or 'C')[0]|upper }}</div>
             <div class="pf-me-text">
                 <b>{{ customer.full_name }}</b>
@@ -124,7 +281,7 @@
         <div class="pf-stats">
             <div class="pf-stat"><b>{{ purchases|length }}</b><span>Purchases</span></div>
             <div class="pf-stat"><b>{{ ns.done }}</b><span>Delivered</span></div>
-            <div class="pf-stat"><b>₹{{ ns.saved|inr }}</b><span>Saved</span></div>
+            <div class="pf-stat save"><b>₹{{ ns.saved|inr }}</b><span>Saved</span></div>
         </div>
     </section>
 
@@ -133,53 +290,24 @@
 
     {% if purchases %}
     <div class="pf-buys">
+        {# the newest purchase is shown in full, older ones fold into a single row #}
         {% for p in purchases %}
-        <div class="pf-item">
-        <a class="pf-buy{% if p.delivered %} done{% endif %}" href="{{ url_for('customer_group_offers_page', group_id=p.group_id) }}">
-            <div class="pf-buy-top">
-                <div class="pf-buy-img"{% if p.car.image_url %} style="background-image:url('{{ p.car.image_url }}')"{% endif %}></div>
-                <div class="pf-buy-info">
-                    <b>{{ p.car.brand }} {{ p.car.model }}</b>
-                    <small>{{ p.car.variant or '' }}{% if p.car.variant %} · {% endif %}{{ p.group_name }}</small>
-                </div>
-                <span class="pf-tag">{% if p.delivered %}Delivered{% else %}{{ p.deal_status }}{% endif %}</span>
-            </div>
-
-            <div class="pf-buy-facts">
-                <div class="pf-fact"><span>Deal price</span><b>{% if p.price %}₹{{ p.price|inr }}{% else %}Pending{% endif %}</b></div>
-                <div class="pf-fact">
-                    <span>{% if p.delivered %}Delivered on{% else %}Expected delivery{% endif %}</span>
-                    <b>
-                        {% if p.delivered %}
-                            {{ (p.updated_at or p.completed_at or '')[:10] or 'Done' }}
-                        {% elif p.delivery_days %}
-                            Within {{ p.delivery_days }} days
-                        {% else %}
-                            Not specified
-                        {% endif %}
-                    </b>
-                </div>
-            </div>
-
-            {% if p.saving %}
-            <p class="pf-save">You saved ₹{{ p.saving|inr }} vs showroom price</p>
+            {% if loop.first %}
+                {{ buy_card(p) }}
+            {% else %}
+                <details class="pf-old{% if p.delivered %} done{% endif %}">
+                    <summary>
+                        <div class="pf-buy-img"{% if p.car.image_url %} style="background-image:url('{{ p.car.image_url }}')"{% endif %}></div>
+                        <div class="pf-buy-info">
+                            <b>{{ p.car.brand }} {{ p.car.model }}</b>
+                            <small>{{ p.group_name }}</small>
+                        </div>
+                        <span class="pf-tag">{% if p.delivered %}Delivered{% else %}{{ p.deal_status }}{% endif %}</span>
+                        <span class="pf-chev" aria-hidden="true">▾</span>
+                    </summary>
+                    <div class="pf-old-body">{{ buy_card(p) }}</div>
+                </details>
             {% endif %}
-
-            <ol class="pf-steps" aria-label="Deal progress">
-                {% for s in deal_steps %}
-                <li{% if loop.index0 <= p.step %} class="on"{% endif %}>{{ s }}</li>
-                {% endfor %}
-            </ol>
-        </a>
-
-        {% if p.delivered %}
-        <div class="pf-rate" data-group="{{ p.group_id }}"
-             data-stars="{{ p.review.stars if p.review else 0 }}"
-             data-comment="{{ (p.review.comment or '') if p.review else '' }}"
-             data-consent="{{ '1' if p.review and p.review.public_consent else '0' }}"
-             data-status="{{ p.review.status if p.review else '' }}"></div>
-        {% endif %}
-        </div>
         {% endfor %}
     </div>
     {% else %}
@@ -189,19 +317,32 @@
     </div>
     {% endif %}
 
+    {# live loan status. It stays empty (and hidden) unless there is an active loan request. The script below fills it. #}
+    <div class="pf-loan" id="pfLoan"></div>
+
     <!-- ===== free services ===== -->
     <h2 class="pf-title">Free services</h2>
 
     <nav class="pf-links" aria-label="Free services">
         <a href="{{ url_for('customer_sell_car_page') }}">
             <span class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16V11l2-5h10l2 5v5"/><path d="M3 16h18v3H3z"/><circle cx="7.5" cy="16" r=".6"/><circle cx="16.5" cy="16" r=".6"/></svg></span>
-            <span><strong>Sell your old vehicle</strong><small>Get a free quote from partner dealers.</small></span>
-            <span class="pf-go" aria-hidden="true">→</span>
+            <strong>Sell vehicle</strong>
+            <small>Get a free quote from partner dealers.</small>
         </a>
         <a href="{{ url_for('customer_insurance_page') }}">
             <span class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
-            <span><strong>Vehicle insurance</strong><small>New vehicle or renewal. Get the best quote.</small></span>
-            <span class="pf-go" aria-hidden="true">→</span>
+            <strong>Insurance</strong>
+            <small>New vehicle or renewal. Get the best quote.</small>
+        </a>
+        <a href="{{ url_for('customer_emi_page') }}">
+            <span class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.3"/><circle cx="17" cy="17" r="2.3"/></svg></span>
+            <strong>Car loan</strong>
+            <small>Check your EMI and get bank offers.</small>
+        </a>
+        <a href="{{ url_for('customer_my_groups_page') }}">
+            <span class="pf-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1"/><circle cx="17" cy="9" r="2.4"/><path d="M17 14a4 4 0 0 1 4 4v2"/></svg></span>
+            <strong>My groups</strong>
+            <small>See your buying groups and offers.</small>
         </a>
     </nav>
 
@@ -217,9 +358,7 @@
         <div class="pf-row out">
             <span class="pf-row-ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3"/><path d="M16 8l4 4-4 4"/><path d="M20 12H9"/></svg></span>
             <div class="pf-row-text"><small>Signed in as</small><b>{{ customer.email or customer.full_name }}</b></div>
-            <form action="/logout" method="POST">
-                <button type="submit" class="btn btn-ghost">Logout</button>
-            </form>
+            <button type="button" class="btn btn-ghost" id="logoutBtn">Logout</button>
         </div>
     </section>
 
@@ -228,8 +367,124 @@
 
 {% block scripts %}
 <script>
-/* Rating on delivered purchases. Runs after base.html (showMessage, escapeHTML are ready). */
+/* Logout confirm + first service reminder + rating on delivered purchases + live loan status.
+   Runs after base.html (showMessage, escapeHTML, openSheet, fetchJSON are ready). */
 (function () {
+    /* ---------- logout: ask first, so a stray tap does not sign the customer out ---------- */
+    const lb = document.getElementById("logoutBtn");
+    if (lb) lb.addEventListener("click", function () {
+        openSheet(
+            '<h3 id="sheetTitle" class="sheet-title">Logout?</h3>' +
+            '<p class="sheet-sub">You will need to sign in again to see your groups and deals.</p>' +
+            '<div class="sheet-actions">' +
+            '<form action="/logout" method="POST" style="margin:0"><button type="submit" class="btn btn-danger" style="width:100%">Yes, logout</button></form>' +
+            '<button type="button" class="btn btn-ghost" data-close>Stay signed in</button>' +
+            '</div>'
+        );
+    });
+
+    /* ---------- my car loan: live status, same data as the EMI page ----------
+       Shown only while a request is active (New, Contacted, Applied, Approved).
+       Disbursed, Rejected or closed requests are not shown here, so the card disappears on its own. */
+    const loanBox = document.getElementById("pfLoan");
+    if (loanBox) {
+        const L_STEPS = ["Requested", "Contacted", "Applied", "Approved"];
+        const L_STEP_OF = { New: 0, Contacted: 1, Applied: 2, Approved: 3 };
+        const L_TEXT = {
+            New: ["Request received", "A loan expert will call you within 24 hours."],
+            Contacted: ["Expert contacted you", "Check your phone for the bank offers we shared."],
+            Applied: ["Application with the bank", "The bank is reviewing your application."],
+            Approved: ["Loan approved", "Great news! Our team will guide you with the next steps."]
+        };
+        const L_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.3"/><circle cx="17" cy="17" r="2.3"/></svg>';
+
+        function drawLoan(lead) {
+            const st = lead ? String(lead.status || "") : "";
+            if (!lead || L_STEP_OF[st] === undefined) { loanBox.className = "pf-loan"; loanBox.innerHTML = ""; return; }
+
+            const i = L_STEP_OF[st], t = L_TEXT[st];
+            const extra = [];
+            if (lead.bank_name) extra.push("<b>Bank:</b> " + escapeHTML(lead.bank_name));
+            if (lead.admin_note) extra.push("<b>Note from our team:</b> " + escapeHTML(lead.admin_note));
+
+            loanBox.className = "pf-loan" + (st === "Approved" ? " ok" : "");
+            loanBox.innerHTML =
+                '<div class="pf-loan-top"><span class="pf-loan-ic">' + L_ICON + '</span>' +
+                '<div class="pf-loan-text"><small>My car loan</small><b>' + escapeHTML(t[0]) + '</b></div></div>' +
+                "<p>" + escapeHTML(t[1]) + "</p>" +
+                '<div class="pf-prog"><div class="pf-prog-top"><b>Step ' + (i + 1) + " of " + L_STEPS.length + "</b><span>" + escapeHTML(L_STEPS[i]) + "</span></div>" +
+                '<ol class="pf-steps" aria-label="Loan progress">' +
+                L_STEPS.map((s, k) => "<li" + (k <= i ? ' class="on"' : "") + '><span class="pf-sr">' + escapeHTML(s) + "</span></li>").join("") +
+                "</ol></div>" +
+                (extra.length ? "<p>" + extra.join("<br>") + "</p>" : "");
+        }
+
+        async function loadLoan() {
+            try {
+                const result = await fetchJSON("/api/customer/finance-leads", { cache: "no-store" });
+                if (!result.ok) return;                        /* server hiccup: leave the card as it is */
+                const leads = (result.data.leads || []).slice().sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
+                drawLoan(leads[0] || null);
+            } catch (e) { /* offline: leave the card as it is */ }
+        }
+        loadLoan();
+        document.addEventListener("visibilitychange", () => { if (!document.hidden) loadLoan(); });
+    }
+
+    /* ---------- first free service reminder ----------
+       due date = delivery date + data-days (default 30)
+       days left = due date - today
+       "Book service" buttons (WhatsApp / Call) show only when the service is due within BOOK_WITHIN days, or overdue.
+       Set BOOK_WITHIN to 9999 to always show them. */
+    const BOOK_WITHIN = 7;
+    const SUPPORT_PHONE = "6383750156";   /* used when the purchase has no dealer_phone and Flask sends no support_phone */
+    const WRENCH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L3.5 17.3a1.8 1.8 0 0 0 2.5 2.5l5.8-5.8a4 4 0 0 0 5.2-5.4l-2.4 2.4-2.2-.6-.6-2.2z"/></svg>';
+    const CHAT = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 20.5l1.6-5.2A8.5 8.5 0 1 1 21 11.5z"/></svg>';
+    const PHONE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>';
+
+    function phoneDigits(raw) {
+        let d = String(raw || "").replace(/\D/g, "");
+        if (d.length === 10) d = "91" + d;          /* Indian 10 digit number: add country code */
+        return d.length >= 11 ? d : "";
+    }
+
+    document.querySelectorAll(".pf-svc").forEach(box => {
+        const start = new Date(box.dataset.date + "T00:00:00");
+        if (isNaN(start)) { box.remove(); return; }
+
+        const due = new Date(start);
+        due.setDate(due.getDate() + (Number(box.dataset.days) || 30));
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const left = Math.round((due - today) / 864e5);
+        const dateTxt = due.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+
+        let tag, cls = "";
+        if (left < 0) { tag = "Overdue by " + (-left) + (left === -1 ? " day" : " days"); cls = " late"; }
+        else if (left === 0) { tag = "Due today"; cls = " soon"; }
+        else if (left <= 7) { tag = "Due in " + left + (left === 1 ? " day" : " days"); cls = " soon"; }
+        else { tag = "In " + left + " days"; }
+
+        /* WhatsApp + Call buttons */
+        let actions = "";
+        const num = phoneDigits(box.dataset.phone || SUPPORT_PHONE);
+        if (num && left <= BOOK_WITHIN) {
+            const msg = "Hi, I would like to book the 1st free service for my " + (box.dataset.car || "car") +
+                ". It was delivered on " + start.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) + ".";
+            actions =
+                '<div class="pf-svc-act">' +
+                '<a class="pf-svc-btn wa" href="https://wa.me/' + num + "?text=" + encodeURIComponent(msg) + '" target="_blank" rel="noopener">' + CHAT + "WhatsApp</a>" +
+                '<a class="pf-svc-btn call" href="tel:+' + num + '">' + PHONE + "Call</a>" +
+                "</div>";
+        }
+
+        box.className = "pf-svc" + cls;
+        box.innerHTML =
+            '<span class="pf-svc-ic">' + WRENCH + "</span>" +
+            '<div class="pf-svc-text"><small>1st free service</small><b>' + escapeHTML(dateTxt) + "</b></div>" +
+            '<span class="pf-svc-tag">' + escapeHTML(tag) + "</span>" + actions;
+    });
+
+    /* ---------- rating ---------- */
     const STATUS_TEXT = {
         pending: "Thank you! It will appear on our website after our team approves it.",
         approved: "Shown on our website. Thank you!",
@@ -239,9 +494,17 @@
 
     function stars(n) { return "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n); }
 
+    /* not reviewed yet: one small row, tap a star to open the form */
+    function showPrompt(box) {
+        box.innerHTML =
+            '<div class="pf-rate-top"><b>Rate your experience</b><span class="pf-stars">' +
+            [1, 2, 3, 4, 5].map(i => '<button type="button" class="pf-star" data-open="' + i + '" aria-label="' + i + ' star' + (i > 1 ? "s" : "") + '">★</button>').join("") +
+            "</span></div>";
+    }
+
     function showSummary(box) {
         const n = Number(box.dataset.stars) || 0;
-        if (!n) return showForm(box);
+        if (!n) return showPrompt(box);
         const c = box.dataset.comment;
         box.innerHTML =
             '<div class="pf-rate-top"><b>Your review</b><span class="pf-static" aria-label="' + n + ' out of 5 stars">' + stars(n) + '</span></div>' +
@@ -250,15 +513,15 @@
             '<button type="button" class="pf-link" data-edit>Edit review</button>';
     }
 
-    function showForm(box) {
-        let n = Number(box.dataset.stars) || 0;
+    function showForm(box, preset) {
+        let n = preset || Number(box.dataset.stars) || 0;
         box.innerHTML =
             '<div class="pf-rate-top"><b>How was your experience?</b><span class="pf-stars" role="radiogroup" aria-label="Rating">' +
             [1, 2, 3, 4, 5].map(i => '<button type="button" class="pf-star" data-s="' + i + '" role="radio" aria-label="' + i + ' star' + (i > 1 ? "s" : "") + '">★</button>').join("") + "</span></div>" +
             '<textarea maxlength="600" placeholder="Tell us about the price, delivery and the dealer (optional)">' + escapeHTML(box.dataset.comment || "") + "</textarea>" +
             '<label class="pf-consent"><input type="checkbox"' + (box.dataset.consent === "1" ? " checked" : "") + '><span>You may show my review, first name and the car I bought on the CarTogether website. My phone number and email are never shown.</span></label>' +
             '<div class="pf-rate-actions"><button type="button" class="btn btn-primary" data-save>Submit review</button>' +
-            (Number(box.dataset.stars) ? '<button type="button" class="btn btn-ghost" data-cancel>Cancel</button>' : "") + "</div>";
+            '<button type="button" class="btn btn-ghost" data-cancel>Cancel</button></div>';
 
         const paint = () => box.querySelectorAll(".pf-star").forEach(b => {
             const on = Number(b.dataset.s) <= n;
@@ -302,7 +565,9 @@
     document.querySelectorAll(".pf-rate").forEach(box => {
         showSummary(box);
         box.addEventListener("click", e => {
-            const star = e.target.closest(".pf-star");
+            const open = e.target.closest("[data-open]");
+            if (open) return showForm(box, Number(open.dataset.open));
+            const star = e.target.closest(".pf-star[data-s]");
             if (star && box._pick) return box._pick(Number(star.dataset.s));
             if (e.target.closest("[data-edit]")) return showForm(box);
             if (e.target.closest("[data-cancel]")) return showSummary(box);

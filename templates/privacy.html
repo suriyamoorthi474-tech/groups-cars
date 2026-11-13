@@ -1,0 +1,60 @@
+{% extends "legal_base.html" %}
+{% set page = 'privacy' %}
+{% block title %}Privacy Policy{% endblock %}
+{% block heading %}Privacy Policy{% endblock %}
+{% block content %}
+<p>This policy explains what information {{ site.name }} collects, why we collect it and the choices you have. By using {{ site.name }} you agree to this policy.</p>
+
+<h2>1. Information we collect</h2>
+<ul>
+  <li><b>Account details:</b> your name, email address, phone number, city and password.</li>
+  <li><b>Vehicle activity:</b> vehicles you show interest in, groups you join, and the offers you vote for.</li>
+  <li><b>Requests you send us:</b> loan or EMI enquiries, insurance requests, used-vehicle selling requests and consultation bookings, including the details you enter in them.</li>
+  <li><b>Reviews:</b> the rating and comment you write after a purchase, and whether you allow it to be shown publicly.</li>
+  <li><b>Basic usage data:</b> a login cookie, and the ads you click.</li>
+</ul>
+
+<h2>2. How we use it</h2>
+<ul>
+  <li>To create and run your account, and keep you logged in.</li>
+  <li>To form buyer groups and confirm your seat.</li>
+  <li>To contact you about your group, offers, requests and deliveries by phone, WhatsApp, SMS or email.</li>
+  <li>To show you ads and offers for your city.</li>
+  <li>To prevent fake accounts and misuse, and to improve the service.</li>
+</ul>
+
+<h2>3. Who we share it with</h2>
+<p>We do not sell your personal information. We share it only when needed:</p>
+<ul>
+  <li><b>Dealers and partners</b> (dealers, lenders, insurers, buyers of used vehicles) get the details needed to complete the deal or request you chose.</li>
+  <li><b>Service providers</b> that host our database and sign-in system.</li>
+  <li><b>Authorities</b> when the law requires it.</li>
+</ul>
+<p>Dealer offers shown to customers do not include the dealer's name. Your contact details are not shown to other customers.</p>
+
+<h2>4. Reviews and public content</h2>
+<p>Your review is private unless you tick the box allowing public display. Even then it is shown only after our team approves it. Phone numbers, emails and links in comments are hidden. You can ask us to remove your review at any time.</p>
+
+<h2>5. Cookies</h2>
+<p>We use a secure session cookie to keep you logged in. It stays until you click Logout. Ads may link to third-party websites that have their own cookies and policies.</p>
+
+<h2>6. Security</h2>
+<p>Passwords are handled by our sign-in provider and are not stored in readable form. We limit staff access to personal data. No system is 100% secure, so please keep your password private.</p>
+
+<h2>7. How long we keep data</h2>
+<p>We keep your information while your account is active and as long as needed for deals, records and legal reasons. After that we delete or anonymise it.</p>
+
+<h2>8. Your choices</h2>
+<p>You can ask to see, correct or delete your personal data, or withdraw your consent to contact, as allowed under Indian law, including the Digital Personal Data Protection Act, 2023. Write to us using the contact details below.</p>
+
+<h2>9. Children</h2>
+<p>{{ site.name }} is for people aged 18 and above. We do not knowingly collect data from children.</p>
+
+<h2>10. Changes</h2>
+<p>We may update this policy. The date at the top shows the latest version. Continued use means you accept the changes.</p>
+
+<h2>11. Contact us</h2>
+<p>Email: <a href="mailto:{{ site.email }}">{{ site.email }}</a><br>
+WhatsApp: <a href="https://wa.me/{{ site.whatsapp_number }}" target="_blank" rel="noopener">Message us</a><br>
+Instagram: <a href="{{ site.instagram_url }}" target="_blank" rel="noopener">{{ site.instagram_handle }}</a></p>
+{% endblock %}

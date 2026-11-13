@@ -75,6 +75,7 @@
 .og-b.price { background: var(--lime); color: #101114; }
 .og-b.fast { background: var(--info-soft); color: var(--info); }
 .og-b.votes { background: var(--warning-soft); color: var(--warning); }
+.og-b.extra { background: var(--acc-soft); color: var(--acc-text); }
 .og-b.mine { background: var(--success); color: #07210f; }
 .og-b.win { background: var(--lime); color: #101114; }
 
@@ -100,6 +101,22 @@
 .og-offer.accepted .og-fact b { color: #fff; }
 .og-notes { margin-top: 14px; font-size: 14px; color: var(--ink-2); line-height: 1.55; overflow-wrap: anywhere; }
 .og-offer.accepted .og-notes { color: #c3c5cf; }
+
+/* ---------- extra features (shown as ticks, no price) ---------- */
+.og-extras { margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--line-2); }
+.og-extras-t { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; font-size: var(--t-xs); font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--muted); }
+.og-extras-t em { font-style: normal; padding: 2px 10px; border-radius: var(--r-pill); background: var(--card-2); color: var(--ink); letter-spacing: 0; text-transform: none; }
+.og-x { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.og-x li { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; min-height: 34px; padding: 6px 12px 6px 8px; border-radius: var(--r-pill); background: var(--bg-2); border: 1px solid var(--line); font-size: 13.5px; font-weight: 600; line-height: 1.3; color: var(--ink); }
+.og-x i { width: 20px; height: 20px; flex: none; border-radius: 50%; background: var(--success); display: grid; place-items: center; }
+.og-x svg { width: 12px; height: 12px; stroke: var(--bg); fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.og-x span { min-width: 0; overflow-wrap: anywhere; }
+.og-offer.accepted .og-extras { border-top-color: rgba(255,255,255,.2); }
+.og-offer.accepted .og-extras-t { color: #b5b7c2; }
+.og-offer.accepted .og-extras-t em { background: rgba(255,255,255,.14); color: #fff; }
+.og-offer.accepted .og-x li { background: rgba(255,255,255,.1); border-color: transparent; color: #fff; }
+.og-offer.accepted .og-x i { background: var(--lime); }
+.og-offer.accepted .og-x svg { stroke: #101114; }
 
 .og-votes { margin-top: 18px; }
 .og-track { height: 8px; border-radius: 8px; background: var(--track); overflow: hidden; }
@@ -224,6 +241,28 @@
         });
     }
 
+    /* Extra features of an offer, with no price.
+       1) If the API sends o.features (array or text), use it.
+       2) Otherwise split o.notes on new lines, ";" or "•". Short pieces become tick chips.
+       3) A normal sentence in notes stays as a plain paragraph. */
+    function cleanItem(s) {
+        return String(s).replace(/^\s*(?:[-*•✓✔]|\d+[.)])\s*/, "").trim();
+    }
+    function parseExtras(o) {
+        let raw = o.features;
+        if (typeof raw === "string") raw = raw.split(/\r?\n|;|•/);
+        if (Array.isArray(raw)) {
+            const items = raw.map(cleanItem).filter(Boolean).slice(0, 10);
+            if (items.length) return { items: items, text: o.notes || "" };
+        }
+        const notes = o.notes ? String(o.notes) : "";
+        if (!notes) return { items: [], text: "" };
+        const parts = notes.split(/\r?\n|;|•/).map(cleanItem).filter(Boolean);
+        const looksLikeList = parts.length >= 2 && parts.every(p => p.length <= 60);
+        if (looksLikeList) return { items: parts.slice(0, 10), text: "" };
+        return { items: [], text: notes };
+    }
+
     /* seat map: same car as Available Groups / My Deals. target comes from the groups API (cached by base). */
     let seatTarget = null;
     async function drawSeats(members, pendingSeat) {
@@ -324,6 +363,11 @@
         const maxV = Math.max.apply(null, voteList);
         const uniq = (arr, v) => arr.filter(x => x === v).length === 1;
 
+        /* extra features per offer (same order as the sorted offers) */
+        const extrasList = offers.map(parseExtras);
+        const extraCounts = extrasList.map(x => x.items.length);
+        const maxX = Math.max.apply(null, extraCounts);
+
         const accepted = offers.find(o => o.status === "Accepted");
         let html = "";
         if (completed) {
@@ -338,7 +382,7 @@
             html += '<div class="og-win"><div class="ic">' + CHECK + '</div><div><b>Your seat is reserved</b><span>Our team will verify and confirm it soon. You can compare the offers now and vote once your seat is confirmed.</span></div></div>';
         }
 
-        html += offers.map(o => {
+        html += offers.map((o, idx) => {
             const id = Number(o.id);
             const isWin = o.status === "Accepted";
             const mine = my === id;
@@ -347,6 +391,7 @@
             const share = members ? Math.min(100, Math.round(votes / members * 100)) : 0;
             const price = Number(o.price) || 0;
             const hasD = o.delivery_days !== null && o.delivery_days !== undefined;
+            const ex = extrasList[idx];
 
             const badges = [];
             if (isWin) badges.push('<span class="og-b win">Selected deal</span>');
@@ -355,6 +400,7 @@
                 if (uniq(prices, minP) && price === minP) badges.push('<span class="og-b price">Lowest price</span>');
                 if (hasD && minD !== null && uniq(days, minD) && Number(o.delivery_days) === minD) badges.push('<span class="og-b fast">Fastest delivery</span>');
                 if (maxV > 0 && uniq(voteList, maxV) && votes === maxV) badges.push('<span class="og-b votes">Most votes</span>');
+                if (maxX > 0 && uniq(extraCounts, maxX) && ex.items.length === maxX) badges.push('<span class="og-b extra">Most extras</span>');
             }
 
             const showroom = Number(data.showroom_price) || 0;
@@ -366,7 +412,14 @@
                 saves = '<div class="og-save">' + money(maxP - price) + " less than the highest offer</div>";
             }
             const delivery = hasD ? Number(o.delivery_days) + " days · ~" + eta(o.delivery_days) : "Not specified";
-            const notes = o.notes ? '<p class="og-notes">' + escapeHTML(o.notes) + "</p>" : "";
+
+            let extras = "";
+            if (ex.items.length) {
+                extras = '<div class="og-extras"><div class="og-extras-t"><span>Extra features included</span><em>' + ex.items.length + '</em></div>' +
+                    '<ul class="og-x">' + ex.items.map(t => '<li><i aria-hidden="true">' + CHECK + '</i><span>' + escapeHTML(t) + '</span></li>').join("") + '</ul></div>';
+            }
+            const notes = ex.text ? '<p class="og-notes">' + escapeHTML(ex.text) + "</p>" : "";
+
             const undo = single && mine && !locked ? '<button type="button" class="og-undo" data-undo>Undo my response</button>' : "";
             const radio = locked ? "" : '<span class="og-radio" aria-hidden="true">' + (mine || picked ? CHECK : "") + "</span>";
             const a11y = locked || undo ? "" : ' role="radio" tabindex="0" aria-checked="' + (mine || picked) + '"';
@@ -377,7 +430,7 @@
                 '<div class="og-dealer">' + escapeHTML(o.label) + "</div>" +
                 '<div class="og-price">' + money(price) + "</div>" + saves +
                 '<div class="og-facts"><div class="og-fact"><span>Delivery</span><b>' + delivery + "</b></div>" +
-                '<div class="og-fact"><span>Votes</span><b>' + votes + "</b></div></div>" + notes +
+                '<div class="og-fact"><span>Votes</span><b>' + votes + "</b></div></div>" + extras + notes +
                 '<div class="og-votes"><div class="og-track"><div class="og-fill" style="width:' + share + '%"></div></div>' +
                 '<div class="og-vtxt"><span><b>' + votes + "</b> of " + members + " members " + (single ? "agree" : "voted for this") + "</span><span>" + share + "%</span></div></div>" +
                 undo + "</article>";

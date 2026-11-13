@@ -5,11 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0b0c10">
 <meta name="color-scheme" content="dark light">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Zivo">
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='%232f3bff'%3E%3Ccircle cx='5' cy='5' r='2.4'/%3E%3Ccircle cx='12' cy='5' r='2.4'/%3E%3Ccircle cx='19' cy='5' r='2.4'/%3E%3Ccircle cx='12' cy='12' r='2.4'/%3E%3Ccircle cx='5' cy='19' r='2.4'/%3E%3Ccircle cx='12' cy='19' r='2.4'/%3E%3Ccircle cx='19' cy='19' r='2.4'/%3E%3C/g%3E%3C/svg%3E">
 <title>Zivo | {% block title %}Customer{% endblock %}</title>
 
 <!-- theme is applied before first paint so there is no flash. localStorage is only a convenience here. -->
-<script>(function(){try{var t=localStorage.getItem("ct-theme");if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t);}}catch(e){}})();</script>
+<script>(function(){var r=document.documentElement,t=null;try{t=localStorage.getItem("ct-theme");}catch(e){}if(t!=="light"&&t!=="dark"){t=(window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches)?"light":"dark";}r.setAttribute("data-theme",t);})();</script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -49,7 +54,7 @@ html[data-theme="light"] {
     color-scheme: light;
     --bg: #f4f2ed; --bg-2: #ebe8df; --card: #ffffff; --card-2: #efede6; --field: #ffffff;
     --ink: #101114; --ink-2: #3a3d46; --muted: #5f626d;
-    --line: #e4e1d8; --line-2: #cfcbbf; --track: #e6e3da;
+    --line: #dcd8cc; --line-2: #c9c4b6; --track: #e6e3da;
     --acc: #2f3bff; --acc-d: #2029d6; --acc-fill: #2f3bff; --acc-text: #2029d6; --acc-soft: #e9ebff;
     --lime: #d7ff3f;
     --hero: #2f3bff; --on-hero: #ffffff;
@@ -80,6 +85,7 @@ html[data-theme="light"] {
     --d-fast: 150ms; --d-med: 250ms; --d-slow: 350ms;
     --ease: cubic-bezier(.2,.8,.2,1);
     --dock-h: 66px;
+    --tab-h: calc(var(--dock-h) + 18px);
 }
 
 /* ---------- 2. BASE ---------- */
@@ -255,6 +261,10 @@ body.has-action-bar .main { padding-bottom: calc(var(--dock-h) + 140px + env(saf
 .sheet-grip { display: block; width: 40px; height: 5px; border-radius: 5px; background: var(--line-2); margin: 0 auto 14px; }
 .sheet-title { font-size: 24px; font-weight: 700; letter-spacing: -.035em; line-height: 1.15; overflow-wrap: anywhere; }
 .sheet-sub { color: var(--muted); margin: 4px 0 14px; overflow-wrap: anywhere; }
+.sheet-title { padding-right: 52px; }
+.sheet-x { position: absolute; top: 10px; right: 12px; z-index: 2; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--card-2); color: var(--ink); font-size: 24px; line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform var(--d-fast) var(--ease), background-color var(--d-med); }
+.sheet-x:hover { background: var(--line); }
+.sheet-x:active { transform: scale(.9); }
 .checks { list-style: none; display: grid; gap: 10px; margin: 14px 0 20px; }
 .checks li { position: relative; padding-left: 30px; font-size: 14.5px; color: var(--ink-2); }
 .checks li::before { content: "✓"; position: absolute; left: 0; top: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--success-soft); color: var(--success); display: grid; place-items: center; font-size: 12px; font-weight: 800; }
@@ -576,6 +586,15 @@ body.tray-on .main { padding-bottom: calc(var(--tab-h, 84px) + 120px); }
 .cmp-table td .clip { display: -webkit-box; -webkit-line-clamp: 5; line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; color: var(--ink-2); }
 .cmp-table .btn { width: 100%; padding: 12px 8px; }
 
+/* ---------- 9b. POLISH: light-mode depth, dock auto-hide ---------- */
+html[data-theme="light"] .page-card, html[data-theme="light"] .calc-card, html[data-theme="light"] .stat-card,
+html[data-theme="light"] .quick-card, html[data-theme="light"] .toolbar, html[data-theme="light"] .activity { box-shadow: var(--shadow); }
+html[data-theme="light"] .group-card { box-shadow: var(--shadow); border-color: var(--line-2); }
+
+/* on phones the dock slides away while scrolling down and comes back when scrolling up */
+.sidebar { transition: transform var(--d-med) var(--ease), background-color var(--d-med), border-color var(--d-med); }
+.sidebar.dock-hide { transform: translate(-50%, 170%); }
+
 /* ---------- 10. RESPONSIVE (mobile-first: 360px base) ---------- */
 @media (max-width: 600px) {
     .profile { padding-right: 5px; }
@@ -679,6 +698,7 @@ body.tray-on .main { padding-bottom: calc(var(--tab-h, 84px) + 120px); }
 
     {% block content %}{% endblock %}
 
+
 </main>
 
 <aside class="sidebar">
@@ -714,6 +734,7 @@ body.tray-on .main { padding-bottom: calc(var(--tab-h, 84px) + 120px); }
     <div class="sheet-backdrop" data-close></div>
     <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" tabindex="-1">
         <span class="sheet-grip" aria-hidden="true"></span>
+        <button type="button" class="sheet-x" data-close aria-label="Close">&times;</button>
         <div id="sheetBody"></div>
     </div>
 </div>
@@ -731,6 +752,7 @@ body.tray-on .main { padding-bottom: calc(var(--tab-h, 84px) + 120px); }
     <form action="/logout" method="POST" class="more-logout">
         <button type="submit" class="btn btn-ghost">Logout</button>
     </form>
+    <button type="button" class="btn btn-ghost" data-close style="width:100%;margin-top:8px">Close</button>
 </template>
 
 <div id="message" role="status" aria-live="polite"></div>
@@ -882,8 +904,61 @@ document.addEventListener("click", function (e) {
     if (retry && typeof window[retry.dataset.retry] === "function") window[retry.dataset.retry]();
 });
 
+/* ============ SHEET: swipe down to close (phones) ============ */
+(function () {
+    const root = byId("sheet"); if (!root) return;
+    const panel = root.querySelector(".sheet-panel"); if (!panel) return;
+    let y0 = null, dy = 0, t0 = 0, dragging = false;
+    panel.addEventListener("touchstart", e => {
+        const ok = window.innerWidth < 700 && panel.scrollTop <= 0 && e.touches.length === 1;
+        y0 = ok ? e.touches[0].clientY : null;
+        dy = 0; dragging = false; t0 = Date.now();
+    }, { passive: true });
+    panel.addEventListener("touchmove", e => {
+        if (y0 === null) return;
+        dy = e.touches[0].clientY - y0;
+        if (dy > 6) {
+            dragging = true;
+            if (e.cancelable) e.preventDefault();      /* stops the page from scrolling or pull-to-refresh behind the sheet */
+            panel.style.transition = "none";
+            panel.style.transform = "translateY(" + dy + "px)";
+        } else if (!dragging && dy < -6) {
+            y0 = null;                                  /* finger moved up: the person is scrolling the sheet content */
+        }
+    }, { passive: false });
+    function release() {
+        if (!dragging) { y0 = null; return; }
+        const far = dy > 80 || (dy > 40 && Date.now() - t0 < 250);   /* a long drag, or a quick flick */
+        panel.style.transition = ""; panel.style.transform = "";
+        y0 = null; dy = 0; dragging = false;
+        if (far) closeSheet();
+    }
+    panel.addEventListener("touchend", release);
+    panel.addEventListener("touchcancel", release);
+})();
+
+/* ============ DOCK: hides while scrolling down, returns on scroll up (phones only) ============ */
+(function () {
+    const dock = document.querySelector(".sidebar"); if (!dock) return;
+    const narrow = window.matchMedia("(max-width: 699px)");
+    let last = window.scrollY, ticking = false;
+    function update() {
+        ticking = false;
+        const y = window.scrollY, d = y - last;
+        const nearEnd = window.innerHeight + y >= document.documentElement.scrollHeight - 80;
+        if (!narrow.matches || document.body.classList.contains("sheet-open") || y < 80 || nearEnd || d < -6) dock.classList.remove("dock-hide");
+        else if (d > 8) dock.classList.add("dock-hide");
+        if (Math.abs(d) > 6) last = y;
+    }
+    window.addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    dock.addEventListener("focusin", () => dock.classList.remove("dock-hide"));
+})();
+
 /* ============ CELEBRATE (real success moments only: vote confirmed, loan approved) ============ */
+/* tiny vibration on real success moments (phones that support it) */
+function buzz(ms) { try { if (!REDUCED && navigator.vibrate) navigator.vibrate(ms || 30); } catch (e) { /* ignore */ } }
 function celebrate() {
+    buzz(40);
     if (REDUCED) return;
     const layer = document.createElement("div");
     layer.className = "confetti"; layer.setAttribute("aria-hidden", "true");
@@ -1411,6 +1486,7 @@ function showJoinSuccess(groupId, data) {
     const g = GROUP_CACHE.get(Number(groupId)) || {};
     const pending = data && data.status === "pending";
     window.__reloadOnClose = true;
+    buzz(30);
     openSheet(`
         <h3 id="sheetTitle" class="sheet-title">${pending ? "Seat reserved" : "You're in!"}</h3>
         <p class="sheet-sub">${escapeHTML((data && data.message) || "Your seat is held.")}</p>

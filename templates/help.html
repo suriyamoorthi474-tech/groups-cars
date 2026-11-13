@@ -1,0 +1,60 @@
+{# "Need help?" section for the landing page. Uses the landing page's own theme variables. #}
+{% from "_icons.html" import insta, wa, mail %}
+<style>
+.hp-wrap{width:min(1180px,100% - 40px);margin:0 auto}
+.hp-head{text-align:center;max-width:620px;margin:0 auto 38px}
+.hp-head h2{font-size:clamp(30px,4vw,46px);font-weight:700;letter-spacing:-.045em;line-height:1.05;margin-bottom:12px}
+.hp-head p{color:var(--muted);font-size:16.5px}
+.hp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.hp-card{display:flex;flex-direction:column;gap:6px;text-decoration:none;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:var(--r-card);padding:28px 26px;transition:transform var(--d-slow) var(--ease),border-color var(--d-med)}
+.hp-card:hover{transform:translateY(-5px);border-color:var(--line-2)}
+.hp-card .ic{width:52px;height:52px;border-radius:17px;display:grid;place-items:center;margin-bottom:14px;background:var(--acc-soft);color:var(--ink)}
+.hp-card .ic svg{width:26px;height:26px}
+.hp-card h3{font-size:21px;font-weight:700;letter-spacing:-.03em}
+.hp-card p{color:var(--muted);font-size:14.5px}
+.hp-card b{margin-top:auto;padding-top:14px;font-size:15px;color:var(--acc-text)}
+.hp-card.main{background:var(--lime);border-color:transparent;color:#101114}
+.hp-card.main .ic{background:#101114;color:var(--lime)}
+.hp-card.main p,.hp-card.main b{color:#2a2d12}
+.hp-topics{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:26px}
+.hp-topics span{font-size:13px;font-weight:600;color:var(--ink-2);background:var(--card);border:1px solid var(--line);padding:6px 14px;border-radius:var(--r-pill)}
+@media (max-width:960px){.hp-grid{grid-template-columns:1fr}}
+</style>
+
+<section id="help" style="padding-top:0">
+  <div class="hp-wrap">
+    <div class="hp-head">
+      <span class="eyebrow">For help</span>
+      <h2>Need help? Talk to us.</h2>
+      <p>Questions about groups, offers, EMI or insurance? Message us and our team will guide you.</p>
+    </div>
+
+    <div class="hp-grid">
+      <a class="hp-card main" href="https://wa.me/{{ site.whatsapp_number }}?text={{ site.whatsapp_message|urlencode }}" target="_blank" rel="noopener">
+        <span class="ic">{{ wa() }}</span>
+        <h3>WhatsApp</h3>
+        <p>The quickest way to reach us. Send a message any time.</p>
+        <b>Chat on WhatsApp</b>
+      </a>
+      <a class="hp-card" href="{{ site.instagram_url }}" target="_blank" rel="noopener">
+        <span class="ic">{{ insta() }}</span>
+        <h3>Instagram</h3>
+        <p>Follow {{ site.instagram_handle }} for updates, or send us a DM.</p>
+        <b>Open Instagram</b>
+      </a>
+      {% if site.email %}
+      <a class="hp-card" href="mailto:{{ site.email }}">
+        <span class="ic">{{ mail() }}</span>
+        <h3>Email</h3>
+        <p>{{ site.email }}</p>
+        <b>Send an email</b>
+      </a>
+      {% endif %}
+    </div>
+
+    <div class="hp-topics" aria-label="Things we can help with">
+      <span>Joining a group</span><span>Dealer offers</span><span>EMI and loans</span>
+      <span>Insurance</span><span>Selling your vehicle</span><span>Account help</span>
+    </div>
+  </div>
+</section>

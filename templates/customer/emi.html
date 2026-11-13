@@ -10,7 +10,7 @@
 .field-head .fl { font-size: 14px; font-weight: 600; }
 
 /* floating EMI pill: shows on phones/tablets once the result card scrolls out of view */
-.emi-pill { display: none; position: fixed; z-index: 55; left: 50%; top: calc(10px + env(safe-area-inset-top)); transform: translate(-50%, -140%); align-items: center; gap: 10px; min-height: 44px; padding: 6px 8px 6px 18px; background: var(--panel); color: var(--on-panel); border: 1px solid var(--line-2); border-radius: var(--r-pill); box-shadow: var(--shadow-2); white-space: nowrap; cursor: pointer; font: inherit; opacity: 0; visibility: hidden; transition: transform .35s var(--ease), opacity .25s, visibility .35s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.emi-pill { display: none; position: fixed; z-index: 55; left: 50%; top: calc(10px + env(safe-area-inset-top)); transform: translate(-50%, -140%); align-items: center; gap: 10px; min-height: 44px; max-width: calc(100vw - 24px); padding: 6px 8px 6px 18px; background: var(--panel); color: var(--on-panel); border: 1px solid var(--line-2); border-radius: var(--r-pill); box-shadow: var(--shadow-2); white-space: nowrap; cursor: pointer; font: inherit; opacity: 0; visibility: hidden; transition: transform .35s var(--ease), opacity .25s, visibility .35s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .emi-pill span { font-size: 13px; font-weight: 500; color: #b5b7c2; }
 .emi-pill b { font-size: 18px; font-weight: 700; letter-spacing: -.03em; color: var(--lime); background: rgba(255,255,255,.1); padding: 4px 14px; border-radius: var(--r-pill); font-variant-numeric: tabular-nums; }
 .emi-pill.show { transform: translate(-50%, 0); opacity: 1; visibility: visible; }
@@ -67,15 +67,50 @@
 .lm-sum div:nth-child(2) small { color: #3d4a00; }
 .lm-sum b { display: block; font-size: 17px; font-weight: 700; letter-spacing: -.02em; overflow-wrap: anywhere; }
 .lm-form { display: grid; gap: 14px; }
-.lm-form label.f { display: grid; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); }
+.lm-form label.f { display: grid; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); min-width: 0; }
+.lm-form .input, .lm-form .select { width: 100%; min-width: 0; }
 .lm-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .lm-consent { display: flex; gap: 12px; align-items: flex-start; font-size: 13px; color: var(--ink-2); line-height: 1.5; font-weight: 500; cursor: pointer; }
 .lm-consent input { width: 22px; height: 22px; margin-top: 1px; flex: none; accent-color: var(--acc-fill); }
 .lm-err { color: var(--danger); font-size: 14px; font-weight: 600; }
 .lm-err:empty { display: none; }
 .lm-form .btn { width: 100%; padding: 16px; font-size: 16px; }
-@media (max-width: 600px) { .lm-two { grid-template-columns: 1fr; } }
-@media (max-width: 380px) { .lm-sum b { font-size: 15px; } }
+
+/* ---------- mobile responsive ---------- */
+.calc, .calc-card { min-width: 0; }
+.field-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.num-wrap { max-width: 100%; min-width: 0; }
+.num-wrap input { min-width: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.total-line { flex-wrap: wrap; gap: 6px 10px; }
+.total-line strong { overflow-wrap: anywhere; }
+.emi-result { overflow-wrap: anywhere; }
+.lm-form { padding-bottom: env(safe-area-inset-bottom); }
+input[type=range] { touch-action: pan-y; }
+
+@media (max-width: 900px) {
+    .calc { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    .result-card { position: static; }
+}
+@media (max-width: 600px) {
+    /* 16px inputs stop iOS Safari from zooming the page when a field is tapped */
+    .calc input, .calc select, .lm-form input, .lm-form select { font-size: 16px; }
+    .calc-card { padding: 18px 16px; }
+    .loan-cta { padding: 16px; margin-top: 16px; gap: 12px; }
+    #lcTitle { font-size: 20px; }
+    .lc-meta { flex-wrap: wrap; }
+    .lm-two { grid-template-columns: 1fr; }
+}
+@media (max-width: 380px) {
+    .lm-sum { gap: 6px; }
+    .lm-sum div { padding: 10px; border-radius: 14px; }
+    .lm-sum b { font-size: 15px; }
+    .emi-pill { padding-left: 14px; gap: 8px; }
+    .emi-pill b { font-size: 16px; padding: 4px 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .emi-pill, .loan-cta, .lc-track, .lc-note { transition: none !important; animation: none !important; }
+}
 </style>
 {% endblock %}
 
