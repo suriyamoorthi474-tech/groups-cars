@@ -1741,17 +1741,62 @@ document.addEventListener("DOMContentLoaded", function () {
     pageStart();
 });
 
-/* ============ TAB NAVIGATION: replace history entry so Back does not walk through every tab ============ */
-document.addEventListener("click", function (e) {
-    const a = e.target.closest(".sidebar .nav a, .more-list a, .brand");
-    if (!a) return;
-    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    if (a.target === "_blank") return;
+/* ============ TAB NAVIGATION ============
+   Back button rules:
+   - Home -> any tab pushes a normal history entry, so Back from that tab returns to Home.
+   - Tab -> tab replaces the entry, so tabs never pile up, and Back still returns to Home.
+   - Tab -> Home goes back to the Home entry that is already below (no duplicate Home).
+   - Back on Home itself is left alone, so it goes to wherever the person came from (landing page). */
+(function () {
+    const brand = document.querySelector(".brand");
+    if (!brand) return;
+    const HOME = new URL(brand.getAttribute("href"), location.href).pathname;
+    const here = location.pathname;
+    const KEY = "zivo-under-home";
 
-    e.preventDefault();
-    if (a.href === location.href) return;   /* already on this page */
-    location.replace(a.href);
-});
+    function flag(v) {
+        try {
+            if (v === undefined) return sessionStorage.getItem(KEY) === "1";
+            if (v) sessionStorage.setItem(KEY, "1"); else sessionStorage.removeItem(KEY);
+        } catch (e) { /* private mode: falls back to plain navigation */ }
+        return false;
+    }
+
+    /* the click handler sets the flag just before leaving a page that has Home right below it.
+       The next page reads it once and marks its own history entry, then clears it. */
+    if (here !== HOME && flag()) {
+        try { history.replaceState(Object.assign({}, history.state, { underHome: true }), ""); } catch (e) { /* ignore */ }
+    }
+    flag(false);
+
+    document.addEventListener("click", function (e) {
+        const a = e.target.closest(".sidebar .nav a, .more-list a, .brand");
+        if (!a) return;
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        if (a.target === "_blank") return;
+
+        const target = new URL(a.href, location.href);
+        if (target.origin !== location.origin) return;
+
+        e.preventDefault();
+        if (target.pathname === here) return;                       /* already on this page */
+
+        const under = !!(history.state && history.state.underHome); /* is Home directly below this entry? */
+
+        if (here === HOME) {                                        /* Home -> tab: push */
+            flag(true);
+            location.assign(a.href);
+        } else if (target.pathname === HOME) {                      /* tab -> Home */
+            if (under) history.back(); else location.replace(a.href);
+        } else {                                                    /* tab -> tab: replace */
+            flag(under);
+            location.replace(a.href);
+        }
+    });
+
+    /* coming back to a page from the browser's back/forward cache: refresh its data */
+    window.addEventListener("pageshow", function (e) { if (e.persisted && typeof pageStart === "function") pageStart(); });
+})();
 </script>
 {% block scripts %}{% endblock %}
 </body>
