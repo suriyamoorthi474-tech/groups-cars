@@ -1,6 +1,6 @@
 {% extends "customer/base.html" %}
 {% block title %}Consulting{% endblock %}
-{% block eyebrow %}Talk to a car expert{% endblock %}
+{% block eyebrow %}Talk to a vehicle expert{% endblock %}
 {% block heading %}Expert Consulting{% endblock %}
 
 {% block head_extra %}
@@ -74,7 +74,7 @@
     <div class="cs-left">
         <section class="cs-hero">
             <span class="cs-pill">Consulting</span>
-            <h2>Not sure which car or offer to pick?</h2>
+            <h2>Not sure which vehicle or offer to pick?</h2>
             <p>Book a short session with our expert. Get honest advice before you join a group or vote on an offer.</p>
             <ul class="cs-perks">
                 <li>Free for now</li>
@@ -93,11 +93,26 @@
                     </select>
                 </label>
 
-                <label class="f">Car you are considering (optional)
-                    <select class="select" name="car_id">
+                <div class="f-lbl">
+                    <span id="typeLbl">Vehicle type *</span>
+                    <div class="cs-chips" id="typeChips" role="group" aria-labelledby="typeLbl">
+                        <button type="button" class="chip on" data-v="car" aria-pressed="true">Car</button>
+                        <button type="button" class="chip" data-v="bike" aria-pressed="false">Bike</button>
+                        <button type="button" class="chip" data-v="other" aria-pressed="false">Other</button>
+                    </div>
+                </div>
+
+                <label class="f" id="vehicleWrap">
+                    <span id="vehicleLbl">Car you are considering (optional)</span>
+                    <select class="select" name="car_id" id="vehicleSel">
                         <option value="">Not decided yet</option>
-                        {% for c in cars %}<option value="{{ c.id }}">{{ c.brand }} {{ c.model }}{% if c.variant %} {{ c.variant }}{% endif %}</option>{% endfor %}
+                        {% for c in cars %}<option value="{{ c.id }}" data-type="{{ (c.vehicle_type or 'car')|lower }}">{{ c.brand }} {{ c.model }}{% if c.variant %} {{ c.variant }}{% endif %}</option>{% endfor %}
                     </select>
+                </label>
+
+                <label class="f" id="otherWrap" hidden>
+                    Which vehicle? (optional)
+                    <input class="input" type="text" name="vehicle_other" id="vehicleOther" maxlength="80" placeholder="Scooter, EV, auto, truck...">
                 </label>
 
                 <div class="f-lbl">
@@ -152,6 +167,7 @@
     const firstMode = document.querySelector("#modeChips .chip.on");
     let mode = firstMode ? firstMode.dataset.v : "";
     let slot = "";
+    let vtype = "car";
     let loadSeq = 0;   /* only the newest load() may paint, so a slow old response can't overwrite a fresh one */
 
     function fmt(d, withTime) {
@@ -162,6 +178,7 @@
             : { weekday: "short", day: "2-digit", month: "short" });
     }
     const safeLink = u => /^https?:\/\//i.test(String(u || "")) ? String(u) : "";
+    const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
 
     /* today as the minimum date (local time, not UTC) */
     const now = new Date();
@@ -181,6 +198,34 @@
         setPressed(document.querySelectorAll("#slotChips .chip"), x => x.dataset.v === slot);
     });
 
+    /* ---- vehicle type: Car / Bike / Other decides which uploaded vehicles are listed ----
+       Options are rebuilt (not hidden) because iOS Safari ignores hidden <option>. */
+    const sel = $("vehicleSel");
+    const placeholder = sel.options[0];
+    const allVehicles = Array.from(sel.options).slice(1);
+
+    function applyType() {
+        const isOther = vtype === "other";
+        $("vehicleWrap").hidden = isOther;
+        $("otherWrap").hidden = !isOther;
+        if (isOther) { sel.value = ""; return; }
+
+        const matches = allVehicles.filter(o => o.dataset.type === vtype);
+        sel.innerHTML = "";
+        placeholder.textContent = matches.length ? "Not decided yet" : "No " + vtype + "s available yet";
+        sel.appendChild(placeholder);
+        matches.forEach(o => sel.appendChild(o));
+        sel.value = "";
+        $("vehicleLbl").textContent = cap(vtype) + " you are considering (optional)";
+    }
+    $("typeChips").addEventListener("click", e => {
+        const c = e.target.closest(".chip"); if (!c) return;
+        vtype = c.dataset.v;
+        setPressed(document.querySelectorAll("#typeChips .chip"), x => x === c);
+        applyType();
+    });
+    applyType();
+
     function card(r) {
         const cls = r.status === "Scheduled" ? "sched" : r.status === "Completed" ? "done" : r.status === "Cancelled" ? "cancel" : "";
         const m = statusMeta("consult", r.status);
@@ -188,8 +233,10 @@
         const wanted = r.preferred_date
             ? '<span class="cs-tag">Wanted: ' + escapeHTML(fmt(r.preferred_date + "T00:00:00", false)) + (r.preferred_slot ? ", " + escapeHTML(r.preferred_slot) : "") + "</span>"
             : (r.preferred_slot ? '<span class="cs-tag">' + escapeHTML(r.preferred_slot) + "</span>" : "");
-        const tags = '<span class="cs-tag">' + escapeHTML(r.mode) + "</span>" +
-            (r.car_name ? '<span class="cs-tag">' + escapeHTML(r.car_name) + "</span>" : "") + wanted;
+        const vehicleTag = r.vehicle_type ? '<span class="cs-tag">' + escapeHTML(cap(String(r.vehicle_type))) + "</span>" : "";
+        const carName = r.car_name || r.vehicle_other;
+        const tags = '<span class="cs-tag">' + escapeHTML(r.mode) + "</span>" + vehicleTag +
+            (carName ? '<span class="cs-tag">' + escapeHTML(carName) + "</span>" : "") + wanted;
 
         const idx = STAGES.consult.findIndex(s => s[0] === r.status);
         const track = idx > -1 ? trackerHTML(STAGES.consult, idx) : "";
@@ -243,7 +290,10 @@
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    topic: f.topic.value, car_id: f.car_id.value, mode: mode,
+                    topic: f.topic.value, vehicle_type: vtype,
+                    car_id: vtype === "other" ? "" : f.car_id.value,
+                    vehicle_other: vtype === "other" ? f.vehicle_other.value.trim() : "",
+                    mode: mode,
                     preferred_date: f.preferred_date.value, preferred_slot: slot, note: f.note.value
                 })
             });
@@ -253,6 +303,7 @@
             if (good) {
                 f.reset(); slot = "";
                 setPressed(document.querySelectorAll("#slotChips .chip"), () => false);
+                applyType();
                 await load();
             }
         } catch (err) {

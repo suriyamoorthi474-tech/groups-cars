@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#0b0c10">
 <meta name="color-scheme" content="dark light">
 <title>Zivo | More Buyers. Better Deals.</title>
+<meta name="description" content="Zivo is a group vehicle-buying platform. Join other buyers, compare quotations from authorised dealerships and buy direct.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='%232f3bff'%3E%3Ccircle cx='5' cy='5' r='2.4'/%3E%3Ccircle cx='12' cy='5' r='2.4'/%3E%3Ccircle cx='19' cy='5' r='2.4'/%3E%3Ccircle cx='12' cy='12' r='2.4'/%3E%3Ccircle cx='5' cy='19' r='2.4'/%3E%3Ccircle cx='12' cy='19' r='2.4'/%3E%3Ccircle cx='19' cy='19' r='2.4'/%3E%3C/g%3E%3C/svg%3E">
 
 <!-- same theme key as the customer app, so the choice carries over after login -->
@@ -258,13 +259,6 @@ section { padding: 88px 0; }
 .about { text-align: center; padding-top: 0; }
 .about p { max-width: 740px; margin: 0 auto; color: var(--muted); font-size: 17px; line-height: 1.8; }
 
-footer { border-top: 1px solid var(--line); padding: 52px 0 28px; }
-.foot { display: flex; justify-content: space-between; align-items: flex-start; gap: 28px; flex-wrap: wrap; padding-bottom: 28px; border-bottom: 1px solid var(--line); }
-.tagline { color: var(--muted); font-size: 14.5px; margin-top: 4px; }
-.foot-links { display: flex; gap: 6px 24px; flex-wrap: wrap; }
-.foot-links a { color: var(--ink-2); text-decoration: none; font-weight: 600; font-size: 14.5px; min-height: 44px; display: inline-flex; align-items: center; }
-.foot-links a:hover { color: var(--acc-text); }
-.copy { padding-top: 22px; color: var(--muted); font-size: 13px; text-align: center; }
 
 /* ---------- THIRUKKURAL ---------- */
 .kural-sec { padding-top: 0; }
@@ -328,8 +322,60 @@ footer { border-top: 1px solid var(--line); padding: 52px 0 28px; }
     .sec-head { margin-bottom: 32px; }
     .cta-box { padding: 52px 22px; border-radius: 30px; }
     .cta-band { padding-bottom: 54px; }
-    .foot { flex-direction: column; }
     .seatmap { font-size: 15px; }
+}
+/* ---------- MINIMAL + TRUST REFINEMENTS ---------- */
+/* calmer hero: one soft circle, no floating or streak animation */
+.hero-panel::before { display: none; }
+.hero-panel::after { width: 420px; height: 420px; right: -120px; bottom: -160px; opacity: .85; }
+.hero h1 { font-size: clamp(38px, 6.4vw, 72px); }
+.car-stage svg { animation: none; filter: drop-shadow(0 28px 30px rgba(0,0,0,.4)); }
+.streak { display: none; }
+.hero-points { margin-top: 26px; }
+
+/* one icon style everywhere (soft accent), no rainbow of lime/ink/blue */
+.ride:nth-child(n) .ic, .why-card:nth-child(n) .ic { background: var(--acc-soft); }
+.ride:nth-child(n) .ic svg, .why-card:nth-child(n) .ic svg { stroke: var(--acc-text); }
+.step .ic { background: var(--acc-soft); color: var(--acc-text); }
+
+/* steps: small label instead of a giant watermark number */
+.step .no { position: static; display: block; margin-bottom: 14px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.step .no::before { content: "Step "; }
+.step .ic { margin-bottom: 16px; }
+
+/* quieter cards: no big quote mark, no corner dots, tiny hover only on devices that hover */
+.review::before, .cta-box::after, .kural::before { display: none; }
+.kural { padding: 48px 28px; }
+.ride:hover, .step:hover, .why-card:hover, .review:hover { transform: none; }
+@media (hover: hover) {
+    .ride:hover, .step:hover, .why-card:hover, .review:hover { transform: translateY(-2px); }
+}
+.sec-head h2, .demo h2 { font-size: clamp(28px, 3.6vw, 40px); }
+.sec-head p, .demo p.lead { font-size: 16px; }
+
+/* trust strip */
+.trust { padding: 26px 0 0; }
+.trust-list { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); background: var(--card); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; }
+.trust-list li { display: flex; align-items: center; gap: 12px; padding: 18px 20px; font-size: 14.5px; font-weight: 700; line-height: 1.3; color: var(--ink); }
+.trust-list li + li { border-left: 1px solid var(--line); }
+.trust-list svg { width: 24px; height: 24px; flex: none; stroke: var(--acc-text); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.trust-list small { display: block; margin-top: 2px; font-size: 12.5px; font-weight: 500; color: var(--muted); }
+@media (max-width: 960px) {
+    .trust-list { grid-template-columns: repeat(2, 1fr); }
+    .trust-list li + li { border-left: 0; }
+    .trust-list li:nth-child(even) { border-left: 1px solid var(--line); }
+    .trust-list li:nth-child(n+3) { border-top: 1px solid var(--line); }
+}
+@media (max-width: 600px) {
+    .bar { min-height: 64px; }
+    .hero-panel::after { width: 300px; height: 300px; right: -110px; bottom: -120px; }
+    .trust { padding-top: 18px; }
+    .trust-list li { padding: 14px 16px; }
+}
+@media (max-width: 460px) {
+    .trust-list { grid-template-columns: 1fr; }
+    .trust-list li:nth-child(even) { border-left: 0; }
+    .trust-list li:nth-child(n+2) { border-top: 1px solid var(--line); }
 }
 @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
@@ -397,21 +443,10 @@ footer { border-top: 1px solid var(--line); padding: 52px 0 28px; }
                         <span>Compare dealer quotes</span>
                         <span>Buy direct</span>
                     </div>
-
-                    <div class="hero-types" aria-label="Vehicle types">
-                        <span>Cars</span>
-                        <span>Bikes</span>
-                        <span>Scooters</span>
-                        <span>EVs</span>
-                        <span>SUVs</span>
-                        <span>Commercial</span>
-                    </div>
                 </div>
 
                 <!-- A different car: a boxy SUV with roof rails -->
                 <div class="car-stage" aria-hidden="true">
-                    <span class="chip a"><i></i>Dealer offers</span>
-                    <span class="chip b"><i></i>Better price together</span>
 
                     <svg viewBox="0 0 640 330" xmlns="http://www.w3.org/2000/svg" role="img">
                         <defs>
@@ -506,6 +541,17 @@ footer { border-top: 1px solid var(--line); padding: 52px 0 28px; }
         </div>
     </div>
 </div>
+
+<section class="trust" aria-label="Why you can trust Zivo">
+    <div class="wrap">
+        <ul class="trust-list rv">
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg><span>Authorised dealers<small>Quotes from real dealerships</small></span></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg><span>Free account<small>Create it at no cost</small></span></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg><span>Side-by-side quotes<small>Compare prices and benefits</small></span></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l3 3 5-6"/></svg><span>Tracked every step<small>Follow your deal until you buy</small></span></li>
+        </ul>
+    </div>
+</section>
 
 <section id="rides">
     <div class="wrap">

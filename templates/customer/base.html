@@ -1740,6 +1740,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
     pageStart();
 });
+
+/* ============ TAB NAVIGATION: replace history entry so Back does not walk through every tab ============ */
+document.addEventListener("click", function (e) {
+    const a = e.target.closest(".sidebar .nav a, .more-list a, .brand");
+    if (!a) return;
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (a.target === "_blank") return;
+
+    e.preventDefault();
+    if (a.href === location.href) return;   /* already on this page */
+    location.replace(a.href);
+});
 </script>
 {% block scripts %}{% endblock %}
 </body>
